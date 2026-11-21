@@ -69,18 +69,35 @@ export class MembersService {
    * Generates next member code CC-000101 style using database sequence.
    */
   async generateMemberCode(): Promise<string> {
-    try {
-      const res = await db.execute(sql`SELECT nextval('member_code_seq') as val`);
-      const val = (res as any)?.rows?.[0]?.val ?? (res as any)?.[0]?.val;
-      if (val) {
-        return `CC-${String(val).padStart(6, '0')}`;
+    for (let attempts = 0; attempts < 20; attempts++) {
+      let code: string | null = null;
+      try {
+        const res = await db.execute(sql`SELECT nextval('member_code_seq') as val`);
+        const val = (res as any)?.rows?.[0]?.val ?? (res as any)?.[0]?.val;
+        if (val) {
+          code = `CC-${String(val).padStart(6, '0')}`;
+        }
+      } catch {
+        // Fallback if sequence is unavailable
       }
-    } catch {
-      // Fallback if sequence is unavailable
+
+      if (!code) {
+        code = `CC-${Math.floor(100000 + Math.random() * 900000)}`;
+      }
+
+      const [existing] = await db
+        .select({ id: members.id })
+        .from(members)
+        .where(eq(members.memberCode, code))
+        .limit(1);
+
+      if (!existing) {
+        return code;
+      }
     }
-    const [res] = await db.select({ c: count() }).from(members);
-    const next = (res?.c ?? 0) + 101;
-    return `CC-${String(next).padStart(6, '0')}`;
+
+    // Ultimate fallback if multiple collisions occur
+    return `CC-${Date.now().toString().slice(-6)}`;
   }
 
   /**

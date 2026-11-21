@@ -176,7 +176,7 @@ export const openTillResponseSchema = tillSessionSchema;
 
 // 6. POST /till/close
 export const closeTillRequestSchema = z.object({
-  tillSessionId: uuidSchema,
+  tillSessionId: uuidSchema.or(z.literal('latest')),
   countedCashPaise: paiseSchema,
 });
 export const closeTillResponseSchema = tillSessionSchema;
