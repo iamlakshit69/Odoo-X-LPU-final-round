@@ -1,0 +1,1 @@
+-- Owner: Dev A. Extensions (btree_gist, pgcrypto). Idempotent.

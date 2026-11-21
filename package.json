@@ -1,0 +1,10 @@
+{
+  "name": "champions-club",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "echo \"wired up in phase 0\"",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}
