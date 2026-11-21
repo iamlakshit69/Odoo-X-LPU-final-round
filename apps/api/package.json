@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:reset": "tsx scripts/dbReset.ts",
+    "db:deploy": "tsx scripts/dbDeploy.ts",
     "db:seed": "tsx src/db/seed/index.ts"
   },
   "dependencies": {

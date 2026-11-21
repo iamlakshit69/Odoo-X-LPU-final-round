@@ -43,7 +43,7 @@ export async function resetDatabase() {
     // 2. Run drizzle-kit push
     console.log('[db:reset] Running drizzle-kit push...');
     const apiRoot = path.join(__dirname, '..');
-    execSync('npx drizzle-kit push --force --config=drizzle.config.ts', {
+    execSync('npx tsx ./node_modules/drizzle-kit/bin.cjs push --force --config=drizzle.config.ts', {
       cwd: apiRoot,
       stdio: 'inherit',
       env: { ...process.env, DATABASE_URL: databaseUrl },

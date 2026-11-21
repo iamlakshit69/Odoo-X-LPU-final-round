@@ -10,6 +10,7 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "db:reset": "pnpm --filter @club/api db:reset",
+    "db:deploy": "pnpm --filter @club/api db:deploy",
     "db:seed": "pnpm --filter @club/api db:seed"
   }
 }
