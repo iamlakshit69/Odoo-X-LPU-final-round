@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.15.4",
   "scripts": {
+    "build": "pnpm --filter @club/web build",
+    "start": "pnpm --filter @club/api start",
     "dev": "pnpm --filter @club/api dev",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:reset": "tsx scripts/dbReset.ts",
@@ -15,6 +16,7 @@
     "@fastify/cookie": "^9.4.0",
     "@fastify/cors": "^9.0.1",
     "@fastify/rate-limit": "^9.1.0",
+    "@fastify/static": "^6.12.0",
     "argon2": "^0.41.1",
     "drizzle-orm": "^0.36.4",
     "fastify": "^4.28.1",

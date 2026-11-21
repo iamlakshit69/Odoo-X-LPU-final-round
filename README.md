@@ -6,6 +6,28 @@ Source of truth: `docs/CHAMPIONS_CLUB_ARCHITECTURE.md`.
 
 ---
 
+## 🚀 Live Demo & Deployment
+
+- **Live URL**: [https://07adad5ee995ac.app.lhr.life](https://07adad5ee995ac.app.lhr.life)
+- **All Demo Accounts Password**: `demo1234`
+
+### Demo Credentials by Role
+
+| Role | Email | Password | Landing Page |
+|---|---|---|---|
+| **Owner** | `owner@championsclub.in` | `demo1234` | `/admin/courts` |
+| **Manager** | `manager@championsclub.in` | `demo1234` | `/admin/courts` |
+| **Front Desk** | `frontdesk@championsclub.in` | `demo1234` | `/admin/frontdesk` |
+| **Shop Clerk** | `shop@championsclub.in` | `demo1234` | `/admin/shop` |
+| **Bartender** | `bartender@championsclub.in` | `demo1234` | `/admin/bar` |
+| **Kitchen** | `kitchen@championsclub.in` | `demo1234` | `/admin/kitchen` |
+| **Cashier** | `cashier@championsclub.in` | `demo1234` | `/admin/invoices` |
+| **Finance** | `finance@championsclub.in` | `demo1234` | `/admin/finance` |
+| **HR** | `hr@championsclub.in` | `demo1234` | `/admin/hr` |
+| **Member** | `member@championsclub.in` | `demo1234` | `/portal` |
+
+---
+
 ## Architecture & Ownership
 
 | Area / Modules | Owner | Responsibilities |
