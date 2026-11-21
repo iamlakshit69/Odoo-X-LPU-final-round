@@ -118,3 +118,17 @@ BEGIN
     FOR EACH ROW EXECUTE FUNCTION prevent_notifications_mutation();
   END IF;
 END $$;
+
+-- 7. Sequence for member code generation (CC-000101 style)
+CREATE SEQUENCE IF NOT EXISTS member_code_seq START 101;
+
+-- 8. Indexes on members for fast search
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'members') THEN
+    CREATE INDEX IF NOT EXISTS idx_members_code ON members(member_code);
+    CREATE INDEX IF NOT EXISTS idx_members_phone ON members(phone);
+    CREATE INDEX IF NOT EXISTS idx_members_name ON members(full_name);
+  END IF;
+END $$;
+

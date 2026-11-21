@@ -1,10 +1,12 @@
 import cron, { ScheduledTask } from 'node-cron';
 import { db } from './db/index.js';
 import { bookings } from '../db/schema/courts.js';
-import { memberships } from '../db/schema/members.js';
-import { and, eq, lt } from 'drizzle-orm';
+import { memberships, plans } from '../db/schema/members.js';
+import { notifications } from '../db/schema/core.js';
+import { and, eq, lt, gte } from 'drizzle-orm';
 import { Notifications } from './notifications.js';
-import { clubLocalToday } from './clubTime.js';
+import { Settings } from './settings.js';
+import { clubLocalToday, addClubDays, clubLocalDayBoundsUtc } from './clubTime.js';
 
 export type JobHandler = () => Promise<void>;
 
@@ -96,26 +98,96 @@ export function getRegisteredJobs(): string[] {
 // 1. membership.expire - 00:05 daily
 registerJob('membership.expire', '5 0 * * *', async () => {
   const today = clubLocalToday();
+  const bounds = clubLocalDayBoundsUtc(today);
+
   const expiredMemberships = await db
     .update(memberships)
-    .set({ status: 'expired' })
+    .set({ status: 'expired', updatedAt: new Date() })
     .where(and(eq(memberships.status, 'active'), lt(memberships.endsOn, today)))
     .returning({ id: memberships.id, memberId: memberships.memberId });
 
   for (const m of expiredMemberships) {
-    await Notifications.send({
-      to: { memberId: m.memberId },
-      template: 'membership.expired',
-      channel: ['inapp'],
-      data: { membershipId: m.id },
-    });
+    // Idempotency check: don't send duplicate notifications on the same day
+    const alreadySent = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.memberId, m.memberId),
+          eq(notifications.template, 'membership.expired'),
+          gte(notifications.createdAt, bounds.start)
+        )
+      )
+      .limit(1);
+
+    if (alreadySent.length === 0) {
+      await Notifications.send({
+        to: { memberId: m.memberId },
+        template: 'membership.expired',
+        channel: ['inapp'],
+        data: { membershipId: m.id },
+      });
+    }
   }
 });
 
 // 2. membership.remind - 09:00 daily
 registerJob('membership.remind', '0 9 * * *', async () => {
-  // Check membership expiry reminder days from settings
-  // Real reminder resolution lands with Members module in Phase 4
+  const today = clubLocalToday();
+  const bounds = clubLocalDayBoundsUtc(today);
+
+  let reminderDays: number[] = [30, 7, 1];
+  try {
+    const configured = await Settings.get<number[]>('membership.reminder_days');
+    if (Array.isArray(configured) && configured.length > 0) {
+      reminderDays = configured;
+    }
+  } catch {
+    // fallback to default [30, 7, 1]
+  }
+
+  for (const days of reminderDays) {
+    const targetDate = addClubDays(today, days);
+
+    const expiringMemberships = await db
+      .select({
+        id: memberships.id,
+        memberId: memberships.memberId,
+        endsOn: memberships.endsOn,
+        planName: plans.name,
+      })
+      .from(memberships)
+      .innerJoin(plans, eq(memberships.planId, plans.id))
+      .where(and(eq(memberships.status, 'active'), eq(memberships.endsOn, targetDate)));
+
+    for (const m of expiringMemberships) {
+      // Idempotency check: don't send duplicate reminder for this member today
+      const alreadySent = await db
+        .select({ id: notifications.id })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.memberId, m.memberId),
+            eq(notifications.template, 'membership.expiring'),
+            gte(notifications.createdAt, bounds.start)
+          )
+        )
+        .limit(1);
+
+      if (alreadySent.length === 0) {
+        await Notifications.send({
+          to: { memberId: m.memberId },
+          template: 'membership.expiring',
+          channel: ['inapp'],
+          data: {
+            planName: m.planName,
+            expiryDate: m.endsOn,
+            days,
+          },
+        });
+      }
+    }
+  }
 });
 
 // 3. booking.expireHolds - every minute (* * * * *)

@@ -37,6 +37,15 @@ export function clubLocalToday(timeZone = DEFAULT_CLUB_TIMEZONE): string {
 }
 
 /**
+ * Adds or subtracts days to a YYYY-MM-DD date string, returning the resulting YYYY-MM-DD string.
+ */
+export function addClubDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+  return date.toISOString().slice(0, 10);
+}
+
+/**
  * Returns the club local weekday: 0 = Sunday, 1 = Monday, ..., 6 = Saturday.
  */
 export function toClubLocalWeekday(instant: Date, timeZone = DEFAULT_CLUB_TIMEZONE): number {
