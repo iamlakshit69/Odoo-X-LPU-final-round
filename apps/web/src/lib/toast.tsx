@@ -53,14 +53,20 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
       if (err && typeof err === 'object') {
         const anyErr = err as any;
-        if (anyErr.error?.code) {
-          code = anyErr.error.code;
-          message = ERROR_CODE_MAP[code] || anyErr.error.message || defaultMessage;
-        } else if (anyErr.code && ERROR_CODE_MAP[anyErr.code]) {
-          code = anyErr.code;
-          message = ERROR_CODE_MAP[code];
-        } else if (anyErr.message) {
+        code = anyErr.error?.code || anyErr.code || '';
+
+        // Surface exact field-level validation issues from the server if present
+        const issues = anyErr.details?.issues || anyErr.error?.details?.issues;
+        if (Array.isArray(issues) && issues.length > 0) {
+          message = issues
+            .map((i: any) => `${i.path?.join('.') || 'field'}: ${i.message}`)
+            .join('; ');
+        } else if (anyErr.message && anyErr.message !== 'Validation failed' && anyErr.message !== 'Request failed') {
           message = anyErr.message;
+        } else if (code && ERROR_CODE_MAP[code]) {
+          message = ERROR_CODE_MAP[code];
+        } else if (anyErr.error?.message) {
+          message = anyErr.error.message;
         }
       }
 

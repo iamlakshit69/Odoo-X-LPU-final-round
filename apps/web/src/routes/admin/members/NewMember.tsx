@@ -74,11 +74,11 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
     mutationFn: () => {
       if (!selectedPlan) throw new Error('Please choose a plan');
       return api.members.create({
-        fullName,
-        phone,
-        email: email || undefined,
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        email: email.trim() ? email.trim() : undefined,
         dob: dob || undefined,
-        notes: notes || undefined,
+        notes: notes.trim() ? notes.trim() : undefined,
         planCode: selectedPlan.code as PlanCode,
       });
     },

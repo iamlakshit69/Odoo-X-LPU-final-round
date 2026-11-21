@@ -10,7 +10,7 @@ import {
 } from './common.js';
 
 // Section 5.2 Enums & Models
-export const planCodeSchema = z.enum(['gold', 'silver', 'junior']);
+export const planCodeSchema = z.string().min(1);
 export type PlanCode = z.infer<typeof planCodeSchema>;
 
 export const membershipStatusSchema = z.enum(['active', 'expired', 'suspended', 'cancelled']);
@@ -115,8 +115,8 @@ export const getPlansResponseSchema = z.array(planSchema);
 export const createMemberRequestSchema = z.object({
   fullName: z.string().min(1),
   phone: z.string().min(5),
-  email: z.string().email().optional(),
-  dob: dateOnSchema.optional(),
+  email: z.string().email().or(z.literal('')).optional().transform((v) => (v === '' ? undefined : v)),
+  dob: dateOnSchema.or(z.literal('')).optional().transform((v) => (v === '' ? undefined : v)),
   photoUrl: z.string().optional(),
   notes: z.string().optional(),
   planCode: planCodeSchema,
