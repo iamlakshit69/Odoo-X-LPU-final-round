@@ -1,9 +1,11 @@
 import cron, { ScheduledTask } from 'node-cron';
+import { randomUUID } from 'node:crypto';
 import { db } from './db/index.js';
 import { bookings } from '../db/schema/courts.js';
 import { memberships, plans } from '../db/schema/members.js';
 import { notifications } from '../db/schema/core.js';
-import { and, eq, lt, gte } from 'drizzle-orm';
+import { leadTasks, leads, leadActivities } from '../db/schema/crm.js';
+import { and, eq, lt, gte, isNull } from 'drizzle-orm';
 import { Notifications } from './notifications.js';
 import { Settings } from './settings.js';
 import { clubLocalToday, addClubDays, clubLocalDayBoundsUtc } from './clubTime.js';
@@ -206,7 +208,67 @@ registerJob('stock.lowCheck', '*/5 * * * *', async () => {
 
 // 5. crm.overdueTasks - hourly (0 * * * *)
 registerJob('crm.overdueTasks', '0 * * * *', async () => {
-  // CRM overdue tasks checker placeholder (real CRM logic in Phase 7)
+  const today = clubLocalToday();
+  const bounds = clubLocalDayBoundsUtc(today);
+
+  try {
+    const overdueTasks = await db
+      .select({
+        taskId: leadTasks.id,
+        title: leadTasks.title,
+        dueOn: leadTasks.dueOn,
+        assignedTo: leadTasks.assignedTo,
+        leadId: leadTasks.leadId,
+        leadName: leads.name,
+      })
+      .from(leadTasks)
+      .innerJoin(leads, eq(leadTasks.leadId, leads.id))
+      .where(and(isNull(leadTasks.doneAt), lt(leadTasks.dueOn, today)));
+
+    for (const t of overdueTasks) {
+      if (!t.assignedTo) continue;
+
+      // Idempotency: check if already notified today for this task
+      const alreadyNotified = await db
+        .select({ id: leadActivities.id })
+        .from(leadActivities)
+        .where(
+          and(
+            eq(leadActivities.leadId, t.leadId),
+            eq(leadActivities.type, 'task_done'),
+            eq(leadActivities.body, `OVERDUE_ALERT:${t.taskId}`),
+            gte(leadActivities.createdAt, bounds.start)
+          )
+        )
+        .limit(1);
+
+      if (alreadyNotified.length === 0) {
+        await Notifications.send({
+          to: { userId: t.assignedTo },
+          template: 'lead.task_due',
+          channel: ['inapp'],
+          data: {
+            taskTitle: t.title,
+            leadName: t.leadName,
+            taskId: t.taskId,
+          },
+        });
+
+        // Record activity marker to ensure at most once per task per day
+        await db.insert(leadActivities).values({
+          id: randomUUID(),
+          leadId: t.leadId,
+          type: 'task_done',
+          body: `OVERDUE_ALERT:${t.taskId}`,
+          byUserId: null,
+          at: new Date(),
+          createdAt: new Date(),
+        });
+      }
+    }
+  } catch (err) {
+    console.error('[crm.overdueTasks] Error checking overdue tasks:', err);
+  }
 });
 
 // 6. bar.longOccupied - every 5 minutes (*/5 * * * *)

@@ -230,15 +230,17 @@ export class MembersService {
    */
   async createMember(
     input: CreateMemberRequest,
-    actorId?: string
+    actorId?: string,
+    tx?: any
   ): Promise<{
     member: Member;
     membership: Membership;
     invoiceId: string;
     qrToken: string;
   }> {
+    const client = tx || db;
     // 1. Lookup plan
-    const [plan] = await db
+    const [plan] = await client
       .select()
       .from(plans)
       .where(and(eq(plans.code, input.planCode), eq(plans.active, true)))
@@ -255,7 +257,7 @@ export class MembersService {
     const endsOn = addClubDays(today, plan.durationDays);
 
     // 2. Insert member
-    const [newMember] = await db
+    const [newMember] = await client
       .insert(members)
       .values({
         id: memberId,
@@ -288,12 +290,12 @@ export class MembersService {
           },
         ],
       },
-      null
+      tx || null
     );
 
     // 4. Insert membership row
     const membershipId = randomUUID();
-    const [newMembership] = await db
+    const [newMembership] = await client
       .insert(memberships)
       .values({
         id: membershipId,
@@ -308,7 +310,7 @@ export class MembersService {
 
     // 5. Guardian link if provided
     if (input.guardianMemberId) {
-      await db.insert(memberGuardians).values({
+      await client.insert(memberGuardians).values({
         memberId: newMember.id,
         guardianMemberId: input.guardianMemberId,
         relationship: input.relationship || 'Guardian',
