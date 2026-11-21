@@ -1,7 +1,7 @@
 // Owner: Dev A – Phase 6: Bookings Service
 import { eq, and, sql, desc, gte, lt, lte, or, inArray } from 'drizzle-orm';
 import { db } from '../../core/db/index.js';
-import { bookings, courts, courtTypes } from '../../db/schema/courts.js';
+import { bookings, courts, courtTypes, socialSessions, socialSignups } from '../../db/schema/courts.js';
 import { members, memberships, plans } from '../../db/schema/members.js';
 import {
   Booking,
@@ -132,6 +132,8 @@ export class BookingsService {
 
         // Daily limit count for this club-local day
         const { start: dayStartUtc, end: dayEndUtc } = clubLocalDayBoundsUtc(targetDateStr);
+        const countSocial = (await Settings.get<boolean>('booking.social_counts_toward_limit')) ?? false;
+
         const [dailyCountRes] = await tx
           .select({ count: sql<number>`count(*)::int` })
           .from(bookings)
@@ -145,7 +147,28 @@ export class BookingsService {
             )
           );
 
-        const currentDayCount = dailyCountRes?.count ?? 0;
+        let socialSignupsCount = 0;
+        if (countSocial) {
+          try {
+            const [socialRes] = await tx
+              .select({ count: sql<number>`count(*)::int` })
+              .from(socialSignups)
+              .innerJoin(socialSessions, eq(socialSignups.sessionId, socialSessions.id))
+              .where(
+                and(
+                  eq(socialSignups.memberId, input.memberId),
+                  eq(socialSignups.status, 'confirmed'),
+                  gte(socialSessions.startAt, dayStartUtc),
+                  lt(socialSessions.startAt, dayEndUtc)
+                )
+              );
+            socialSignupsCount = socialRes?.count ?? 0;
+          } catch {
+            socialSignupsCount = 0;
+          }
+        }
+
+        const currentDayCount = (dailyCountRes?.count ?? 0) + socialSignupsCount;
         const dailyLimit = activePlan.dailyBookingLimit ?? (await Settings.get<number>('booking.default_daily_limit')) ?? 2;
 
         if (currentDayCount >= dailyLimit) {

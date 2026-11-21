@@ -77,6 +77,7 @@ export const fixtureSettings: SettingsMap = {
     { hours_before: 2, refund_pct: 50 },
     { hours_before: 0, refund_pct: 0 },
   ],
+  'booking.social_counts_toward_limit': false,
   'social.windows': [{ weekday: 5, from: '18:00', to: '22:00', capacity: 16 }],
   'membership.reminder_days': [30, 7],
   'crm.stages': ['new', 'contacted', 'quotation_sent', 'follow_up', 'converted', 'lost'],

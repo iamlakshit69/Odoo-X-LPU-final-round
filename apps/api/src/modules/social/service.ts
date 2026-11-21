@@ -1,15 +1,17 @@
-// Owner: Dev A – Phase 6: Social Play Service
-import { eq, and, sql, asc, gte, lt } from 'drizzle-orm';
+// Owner: Dev A – Phase 7: Social Play Service
+import { eq, and, sql, asc, gte, lt, lte } from 'drizzle-orm';
 import { db } from '../../core/db/index.js';
-import { socialSessions, socialSignups, courts, bookings } from '../../db/schema/courts.js';
-import { members } from '../../db/schema/members.js';
+import { socialSessions, socialSignups, courts, courtTypes, bookings } from '../../db/schema/courts.js';
+import { members, memberships } from '../../db/schema/members.js';
 import {
   SocialSession,
   SocialSignup,
   SessionUser,
 } from '@club/contract';
 import { clubLocalDayBoundsUtc, toClubLocalDate } from '../../core/clubTime.js';
-import { invoiceServiceStub } from '../../core/stubs/finance.js';
+import { invoiceServiceStub, paymentServiceStub } from '../../core/stubs/finance.js';
+import { Pricing } from '../pricing/index.js';
+import { Settings } from '../../core/settings.js';
 import { Audit } from '../../core/audit.js';
 import { Events } from '../../core/events.js';
 import { Notifications } from '../../core/notifications.js';
@@ -181,6 +183,7 @@ export class SocialService {
 
   /**
    * Signs up a member for a social session (auto-confirms if under capacity, else waitlists).
+   * Verifies member is active and checks duplicate signups.
    */
   async signup(
     sessionId: string,
@@ -202,6 +205,29 @@ export class SocialService {
 
       const [member] = await tx.select().from(members).where(eq(members.id, memberId));
       if (!member) throw new AppError('NOT_FOUND', 'Member not found', 404);
+
+      // Check active membership
+      const targetDateStr = toClubLocalDate(session.startAt);
+      const activeMemberships = await tx
+        .select()
+        .from(memberships)
+        .where(
+          and(
+            eq(memberships.memberId, memberId),
+            eq(memberships.status, 'active'),
+            lte(memberships.startsOn, targetDateStr),
+            gte(memberships.endsOn, targetDateStr)
+          )
+        )
+        .limit(1);
+
+      if (activeMemberships.length === 0) {
+        throw new AppError(
+          'MEMBERSHIP_INACTIVE',
+          'Member does not have an active membership valid for this date',
+          422
+        );
+      }
 
       // Check for existing active signup
       const [existing] = await tx
@@ -228,11 +254,23 @@ export class SocialService {
       const confirmedCount = confirmedRes?.count ?? 0;
       let invoiceId: string | undefined = undefined;
 
+      // Price quote via PricingEngine
+      const quote = await Pricing.quote({
+        kind: 'social',
+        scopeRef: 'social',
+        basePricePaise: session.pricePerHeadPaise,
+        qty: 1,
+        memberId,
+        channel: 'counter',
+        at: session.startAt,
+      });
+
       if (confirmedCount < session.capacity) {
         // Confirmed signup
         const position = confirmedCount + 1;
 
-        // Invoice creation (TODO: Dev B replace)
+        // Invoice creation with line source 'social'
+        // TODO(replace-with-DevB): In-memory stub used until Dev B delivers real finance service
         const inv = await invoiceServiceStub.create(
           {
             customer: { memberId },
@@ -242,6 +280,7 @@ export class SocialService {
                 description: `Social Session: ${session.title}`,
                 qty: 1,
                 unitPricePaise: session.pricePerHeadPaise,
+                discountPaise: Math.max(0, session.pricePerHeadPaise - quote.unitPaise),
                 taxCategory: 'standard',
                 refType: 'social_session',
                 refId: session.id,
@@ -269,6 +308,11 @@ export class SocialService {
           resource: 'social_signup',
           recordId: signup.id,
           after: signup,
+        });
+
+        Events.publish('booking.changed', {
+          courtId: session.courtId,
+          date: targetDateStr,
         });
 
         return {
@@ -312,6 +356,11 @@ export class SocialService {
           after: signup,
         });
 
+        Events.publish('booking.changed', {
+          courtId: session.courtId,
+          date: targetDateStr,
+        });
+
         return {
           signup: {
             id: signup.id,
@@ -328,7 +377,8 @@ export class SocialService {
   }
 
   /**
-   * Cancels a member's signup and promotes the next waitlisted member if confirmed was cancelled.
+   * Cancels a member's signup and promotes the next waitlisted member in the same transaction.
+   * If confirmed signup was cancelled, refunds through policy and PaymentService stub.
    */
   async cancelSignup(
     sessionId: string,
@@ -362,6 +412,37 @@ export class SocialService {
 
       const wasConfirmed = signup.status === 'confirmed';
 
+      // Refund calculation if was confirmed
+      if (wasConfirmed) {
+        const now = new Date();
+        const hoursUntilStart = (session.startAt.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+        const policy = (await Settings.get<Array<{ hours_before: number; refund_pct: number }>>(
+          'booking.cancellation_policy'
+        )) ?? [
+          { hours_before: 24, refund_pct: 100 },
+          { hours_before: 2, refund_pct: 50 },
+          { hours_before: 0, refund_pct: 0 },
+        ];
+
+        const sorted = [...policy].sort((a, b) => b.hours_before - a.hours_before);
+        const matched = sorted.find((p) => hoursUntilStart >= p.hours_before);
+        const refundPct = matched ? matched.refund_pct : 0;
+        const refundPaise = Math.round((session.pricePerHeadPaise * refundPct) / 100);
+
+        if (refundPaise > 0 && signup.invoiceId) {
+          // TODO(replace-with-DevB): Dev B owns PaymentService; recorded via stub
+          await paymentServiceStub.refund(
+            {
+              invoiceId: signup.invoiceId,
+              amountPaise: refundPaise,
+              reason: 'Social session signup cancellation refund',
+            },
+            tx as any
+          );
+        }
+      }
+
       await tx
         .update(socialSignups)
         .set({ status: 'cancelled' })
@@ -388,9 +469,29 @@ export class SocialService {
 
         if (nextInLine) {
           promotedMemberId = nextInLine.memberId;
+
+          // Create invoice for promoted member
+          const inv = await invoiceServiceStub.create(
+            {
+              customer: { memberId: promotedMemberId },
+              lines: [
+                {
+                  source: 'social',
+                  description: `Social Session: ${session.title} (Promoted from waitlist)`,
+                  qty: 1,
+                  unitPricePaise: session.pricePerHeadPaise,
+                  taxCategory: 'standard',
+                  refType: 'social_session',
+                  refId: session.id,
+                },
+              ],
+            },
+            tx as any
+          );
+
           await tx
             .update(socialSignups)
-            .set({ status: 'confirmed' })
+            .set({ status: 'confirmed', invoiceId: inv.invoiceId })
             .where(eq(socialSignups.id, nextInLine.id));
 
           await Notifications.send({
@@ -403,6 +504,11 @@ export class SocialService {
           });
         }
       }
+
+      Events.publish('booking.changed', {
+        courtId: session.courtId,
+        date: toClubLocalDate(session.startAt),
+      });
 
       return {
         success: true,

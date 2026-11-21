@@ -99,6 +99,7 @@ export const settingSocialWindowsSchema = z.array(
     capacity: z.number().int().positive(),
   })
 );
+export const settingBookingSocialCountsTowardLimitSchema = z.boolean().default(false);
 export const settingMembershipReminderDaysSchema = z.array(z.number().int().positive());
 export const settingCrmStagesSchema = z.array(z.string().min(1));
 export const settingInventoryDefaultLowStockSchema = z.number().int().min(0).default(3);
@@ -112,6 +113,7 @@ export const settingsMapSchema = z.object({
   'booking.default_daily_limit': settingBookingDefaultDailyLimitSchema,
   'booking.advance_days': settingBookingAdvanceDaysSchema,
   'booking.cancellation_policy': settingBookingCancellationPolicySchema,
+  'booking.social_counts_toward_limit': settingBookingSocialCountsTowardLimitSchema,
   'social.windows': settingSocialWindowsSchema,
   'membership.reminder_days': settingMembershipReminderDaysSchema,
   'crm.stages': settingCrmStagesSchema,
