@@ -17,6 +17,17 @@ import { register as registerSocial } from './modules/social/index.js';
 import { register as registerPricing } from './modules/pricing/index.js';
 import { register as registerCrm } from './modules/crm/index.js';
 
+// Dev B module routers
+import { register as registerShop } from './modules/shop/index.js';
+import { register as registerInventory } from './modules/inventory/index.js';
+import { register as registerBar } from './modules/bar/index.js';
+import { register as registerInvoices } from './modules/invoices/index.js';
+import { register as registerPayments } from './modules/payments/index.js';
+import { register as registerTax } from './modules/tax/index.js';
+import { register as registerFinance } from './modules/finance/index.js';
+import { register as registerExpenses } from './modules/expenses/index.js';
+import { register as registerHr } from './modules/hr/index.js';
+
 export async function registerModules(app: ReturnType<typeof Fastify>) {
   await registerAuthRoutes(app);
   await registerEventRoutes(app);
@@ -28,6 +39,15 @@ export async function registerModules(app: ReturnType<typeof Fastify>) {
   await registerSocial(app);
   await registerPricing(app);
   await registerCrm(app);
+  await registerShop(app);
+  await registerInventory(app);
+  await registerBar(app);
+  await registerInvoices(app);
+  await registerPayments(app);
+  await registerTax(app);
+  await registerFinance(app);
+  await registerExpenses(app);
+  await registerHr(app);
 }
 
 export function buildApp() {

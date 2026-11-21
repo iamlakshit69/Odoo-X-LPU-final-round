@@ -257,3 +257,13 @@ export const getZReportQuerySchema = z.object({
   date: dateOnSchema,
 });
 export const getZReportResponseSchema = zReportSchema;
+
+export type CreateMenuItemRequest = z.infer<typeof createMenuItemRequestSchema>;
+export type UpdateMenuItemRequest = z.infer<typeof updateMenuItemRequestSchema>;
+export type CreateBarTableRequest = z.infer<typeof createTableRequestSchema>;
+export type UpdateBarTableRequest = z.infer<typeof updateTableRequestSchema>;
+export type OpenTillRequest = z.infer<typeof openTillRequestSchema>;
+export type CloseTillRequest = z.infer<typeof closeTillRequestSchema>;
+export type CreateTabRequest = z.infer<typeof createTabRequestSchema>;
+export type AddTabItemRequest = z.infer<typeof addTabItemRequestSchema>;
+export type SettleTabRequest = z.infer<typeof settleTabRequestSchema>;

@@ -186,7 +186,7 @@ export const createLeaveRequestSchema = z.object({
   leaveTypeId: uuidSchema,
   fromOn: dateOnSchema,
   toOn: dateOnSchema,
-  days: z.number().int().positive(),
+  days: z.number().int().positive().optional(),
   reason: z.string().optional(),
 });
 export const createLeaveRequestResponseSchema = leaveRequestSchema;
@@ -203,7 +203,8 @@ export const decideLeaveRequestResponseSchema = leaveRequestSchema;
 
 // 7. POST /payroll/run
 export const runPayrollRequestSchema = z.object({
-  monthOn: dateOnSchema,
+  monthOn: z.string().optional(),
+  month: z.string().optional(),
 });
 export const runPayrollResponseSchema = z.object({
   monthOn: dateOnSchema,
@@ -216,7 +217,14 @@ export const runPayrollResponseSchema = z.object({
 
 // 8. GET /payslips
 export const getPayslipsQuerySchema = z.object({
-  monthOn: dateOnSchema,
+  monthOn: z.string().optional(),
+  month: z.string().optional(),
   employeeId: uuidSchema.optional(),
 });
 export const getPayslipsResponseSchema = z.array(payslipSchema);
+
+export type CreateEmployeeRequest = z.infer<typeof createEmployeeRequestSchema>;
+export type UpdateEmployeeRequest = z.infer<typeof updateEmployeeRequestSchema>;
+export type CreateWorkShiftRequest = z.infer<typeof createWorkShiftRequestSchema>;
+export type CreateSalaryComponentRequest = z.infer<typeof createSalaryComponentRequestSchema>;
+export type CreateLeaveRequest = z.infer<typeof createLeaveRequestSchema>;

@@ -232,6 +232,8 @@ export async function seed() {
     finance: [
       'member:read',
       'booking:read',
+      'product:read',
+      'stock:read',
       'order:read',
       'tab:read',
       'invoice:create',

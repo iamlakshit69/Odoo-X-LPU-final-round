@@ -331,9 +331,9 @@ export const getFinanceReceivablesResponseSchema = z.object({
 
 // 9. GET /finance/export
 export const getFinanceExportQuerySchema = z.object({
-  from: dateOnSchema,
-  to: dateOnSchema,
-  format: z.literal('csv'),
+  from: dateOnSchema.optional(),
+  to: dateOnSchema.optional(),
+  format: z.string().default('csv').optional(),
 });
 export const getFinanceExportResponseSchema = z.object({
   csv: z.string(),
@@ -388,3 +388,11 @@ export const updateTaxRateRequestSchema = z.object({
   description: z.string().optional(),
 });
 export const updateTaxRateResponseSchema = taxRateSchema;
+
+export type CreateBusinessClientRequest = z.infer<typeof createBusinessClientRequestSchema>;
+export type UpdateBusinessClientRequest = z.infer<typeof updateBusinessClientRequestSchema>;
+export type CreateInvoiceRequest = z.infer<typeof createInvoiceRequestSchema>;
+export type CreatePaymentRequest = z.infer<typeof createPaymentRequestSchema>;
+export type CreateExpenseRequest = z.infer<typeof createExpenseRequestSchema>;
+export type UpdateExpenseRequest = z.infer<typeof updateExpenseRequestSchema>;
+export type UpdateTaxRateRequest = z.infer<typeof updateTaxRateRequestSchema>;

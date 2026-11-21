@@ -260,3 +260,11 @@ export const getOrdersResponseSchema = paginatedResponseSchema(orderSchema);
 // 13. GET /orders/:id
 export const getOrderParamsSchema = z.object({ id: uuidSchema });
 export const getOrderResponseSchema = orderSchema;
+
+export type CreateProductRequest = z.infer<typeof createProductRequestSchema>;
+export type UpdateProductRequest = z.infer<typeof updateProductRequestSchema>;
+export type CreateVariantRequest = z.infer<typeof createVariantRequestSchema>;
+export type UpdateVariantRequest = z.infer<typeof updateVariantRequestSchema>;
+export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
+export type UpdateOrderStatusRequest = z.infer<typeof updateOrderStatusRequestSchema>;
+export type CreateStockMovementRequest = z.infer<typeof createStockMovementRequestSchema>;
