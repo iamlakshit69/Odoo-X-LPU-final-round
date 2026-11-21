@@ -12,6 +12,11 @@ import { Login } from './routes/Login';
 import { CourtsGrid } from './routes/admin/courts/CourtsGrid';
 import { FrontDesk } from './routes/admin/desk/FrontDesk';
 import { NewMember } from './routes/admin/members/NewMember';
+import { ShopPos } from './routes/admin/shop/ShopPos';
+import { ShopOrders } from './routes/admin/shop/ShopOrders';
+import { ShopStock } from './routes/admin/shop/ShopStock';
+import { BarConsole } from './routes/admin/bar/BarConsole';
+import { KdsScreen } from './routes/admin/kds/KdsScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +80,30 @@ function MainRouter() {
 
     if (currentPath === '/admin/members/new') {
       return <NewMember onDone={() => navigate('/admin/desk')} />;
+    }
+
+    if (currentPath === '/admin/shop/pos' || currentPath === '/admin/shop') {
+      return <ShopPos />;
+    }
+
+    if (currentPath === '/admin/shop/orders') {
+      return <ShopOrders />;
+    }
+
+    if (currentPath === '/admin/shop/stock') {
+      return <ShopStock />;
+    }
+
+    if (currentPath === '/admin/bar') {
+      return <BarConsole />;
+    }
+
+    if (currentPath === '/admin/kds/kitchen') {
+      return <KdsScreen initialStation="kitchen" />;
+    }
+
+    if (currentPath === '/admin/kds/bar') {
+      return <KdsScreen initialStation="bar" />;
     }
 
     // Default to Public Landing

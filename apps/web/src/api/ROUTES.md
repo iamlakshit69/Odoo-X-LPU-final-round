@@ -50,6 +50,29 @@ All API module routes are mounted with prefix `/api` in `apps/api/src/app.ts`:
   - `POST /api/invoices/:id/payments` (record cash / card / upi payment)
   - `POST /api/invoices`
 
+- **Shop & Inventory**:
+  - `GET /api/products` (list products with variants)
+  - `GET /api/public/products` (public catalog with boolean inStock)
+  - `GET /api/stock` (stock levels from v_stock view, ?lowOnly=true)
+  - `POST /api/stock/movements` (stock adjustments and purchases)
+  - `POST /api/orders` (create shop orders with quote-calculated line prices)
+  - `GET /api/orders` (list orders)
+  - `POST /api/orders/:id/status` (advance status: placed -> ready -> out_for_delivery -> collected/delivered)
+
+- **Bar POS, Tables, Till, KDS & Z-Report**:
+  - `GET /api/admin/menu` (menu items by category/station)
+  - `GET /api/admin/tables` (table floor plan with isOccupiedTooLong flag)
+  - `POST /api/till/open` (open till with float)
+  - `POST /api/till/close` (close till with counted cash & variance)
+  - `POST /api/tabs` (open bar tab)
+  - `GET /api/tabs/:id` (get tab with items and line prices)
+  - `POST /api/tabs/:id/items` (add item to tab)
+  - `POST /api/tab-items/:id/status` (advance KDS item status)
+  - `POST /api/tab-items/:id/void` (void item with required reason)
+  - `POST /api/tabs/:id/settle` (split-tender tab settlement: cash, card, upi)
+  - `GET /api/kds?station=kitchen|bar` (kitchen/bar display items, newest first)
+  - `GET /api/reports/z?date=YYYY-MM-DD` (Z-report summary)
+
 - **Realtime SSE**:
   - `GET /api/events` (authenticated stream for `booking.changed`, `order.item`, `order.status`, `stock.low`, `lead.created`, `dashboard.tick`)
   - `GET /api/public/events` (public stream restricted to `booking.changed`)

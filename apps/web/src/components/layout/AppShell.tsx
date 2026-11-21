@@ -32,6 +32,12 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
     { title: 'Court Availability Grid', icon: <CalendarDays className="w-4 h-4 text-accent-orange" />, path: '/admin/courts' },
     { title: 'Front Desk Member Omnibox', icon: <UserCheck className="w-4 h-4 text-emerald-500" />, path: '/admin/desk' },
     { title: 'Register New Member', icon: <UserPlus className="w-4 h-4 text-blue-500" />, path: '/admin/members/new' },
+    { title: 'Shop POS Counter', icon: <ArrowRight className="w-4 h-4 text-accent-orange" />, path: '/admin/shop/pos' },
+    { title: 'Shop Orders Board', icon: <ArrowRight className="w-4 h-4 text-purple-500" />, path: '/admin/shop/orders' },
+    { title: 'Warehouse v_stock', icon: <ArrowRight className="w-4 h-4 text-blue-500" />, path: '/admin/shop/stock' },
+    { title: 'Lounge Bar Floor Plan', icon: <ArrowRight className="w-4 h-4 text-amber-500" />, path: '/admin/bar' },
+    { title: 'Kitchen KDS Station', icon: <ArrowRight className="w-4 h-4 text-red-500" />, path: '/admin/kds/kitchen' },
+    { title: 'Bar KDS Station', icon: <ArrowRight className="w-4 h-4 text-cyan-500" />, path: '/admin/kds/bar' },
     { title: 'Public Home & Sports Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
   ].filter((item) => item.title.toLowerCase().includes(cmdSearch.toLowerCase()));
 

@@ -228,4 +228,107 @@ export const api = {
         body: JSON.stringify(body),
       }),
   },
+
+  shop: {
+    getProducts: (params?: { category?: string; active?: boolean }) => {
+      const q = new URLSearchParams();
+      if (params?.category) q.set('category', params.category);
+      if (params?.active !== undefined) q.set('active', String(params.active));
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/products?${q.toString()}`);
+    },
+    getPublicProducts: (params?: { category?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.category) q.set('category', params.category);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/public/products?${q.toString()}`);
+    },
+    getStock: (params?: { lowOnly?: boolean }) => {
+      const q = new URLSearchParams();
+      if (params?.lowOnly !== undefined) q.set('lowOnly', String(params.lowOnly));
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/stock?${q.toString()}`);
+    },
+    recordStockMovement: (body: {
+      variantId: string;
+      delta: number;
+      reason: string;
+      refType?: string;
+      refId?: string;
+      note?: string;
+    }) =>
+      request<any>('/api/stock/movements', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    createOrder: (body: any) =>
+      request<any>('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateOrderStatus: (id: string, status: string) =>
+      request<any>(`/api/orders/${id}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status }),
+      }),
+    listOrders: (params?: { status?: string; memberId?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.status) q.set('status', params.status);
+      if (params?.memberId) q.set('memberId', params.memberId);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/orders?${q.toString()}`);
+    },
+    getOrder: (id: string) => request<any>(`/api/orders/${id}`),
+  },
+
+  bar: {
+    getMenu: (params?: { category?: string; station?: string; active?: boolean }) => {
+      const q = new URLSearchParams();
+      if (params?.category) q.set('category', params.category);
+      if (params?.station) q.set('station', params.station);
+      if (params?.active !== undefined) q.set('active', String(params.active));
+      return request<any[]>(`/api/admin/menu?${q.toString()}`);
+    },
+    getTables: () => request<any[]>('/api/admin/tables'),
+    openTill: (body: { openingFloatPaise: number }) =>
+      request<any>('/api/till/open', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    closeTill: (body: { tillSessionId: string; countedCashPaise: number }) =>
+      request<any>('/api/till/close', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    createTab: (body: { tableId?: string; memberId?: string; guestLabel?: string; tillSessionId?: string }) =>
+      request<any>('/api/tabs', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    getTab: (id: string) => request<any>(`/api/tabs/${id}`),
+    addTabItem: (tabId: string, body: { menuItemId: string; qty?: number }) =>
+      request<any>(`/api/tabs/${tabId}/items`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateTabItemStatus: (itemId: string, status: 'pending' | 'preparing' | 'ready' | 'served') =>
+      request<any>(`/api/tab-items/${itemId}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status }),
+      }),
+    voidTabItem: (itemId: string, voidReason: string) =>
+      request<any>(`/api/tab-items/${itemId}/void`, {
+        method: 'POST',
+        body: JSON.stringify({ voidReason }),
+      }),
+    settleTab: (tabId: string, body: { payments: Array<{ method: string; amountPaise: number }> }) =>
+      request<any>(`/api/tabs/${tabId}/settle`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    getKds: (station: 'kitchen' | 'bar') => {
+      const q = new URLSearchParams({ station });
+      return request<any[]>(`/api/kds?${q.toString()}`);
+    },
+    getZReport: (date: string) => {
+      const q = new URLSearchParams({ date });
+      return request<any>(`/api/reports/z?${q.toString()}`);
+    },
+  },
 };
