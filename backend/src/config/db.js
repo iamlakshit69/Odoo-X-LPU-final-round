@@ -1,11 +1,11 @@
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const { Pool } = require('pg');
+const env = require('./env');
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({ connectionString: env.databaseUrl });
 
 module.exports = {
   query: (text, params) => pool.query(text, params),
-  // use for multi-step writes (order + stock + payment)
+  // for multi-step writes (booking + payment, order + stock): all-or-nothing
   async tx(fn) {
     const client = await pool.connect();
     try {
