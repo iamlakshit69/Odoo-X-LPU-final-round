@@ -32,6 +32,14 @@ export async function resetDatabase() {
     `);
     console.log('[db:reset] Schema public recreated.');
 
+    // 1b. Apply 00_ext.sql before push to ensure required extensions exist
+    const extSqlPath = path.join(__dirname, '../src/db/sql/00_ext.sql');
+    if (fs.existsSync(extSqlPath)) {
+      console.log('[db:reset] Applying extensions from 00_ext.sql...');
+      const extSql = fs.readFileSync(extSqlPath, 'utf-8');
+      await client.query(extSql);
+    }
+
     // 2. Run drizzle-kit push
     console.log('[db:reset] Running drizzle-kit push...');
     const apiRoot = path.join(__dirname, '..');
