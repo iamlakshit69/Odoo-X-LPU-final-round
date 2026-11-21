@@ -653,6 +653,14 @@ export class CrmService {
       createdAt: now,
     });
 
+    await Audit.log({
+      actor: actorId || 'system',
+      action: 'lead.task_create',
+      resource: 'lead_task',
+      recordId: task.id,
+      after: { leadId: id, title: task.title, dueOn: task.dueOn },
+    });
+
     return {
       id: task.id,
       leadId: task.leadId,
@@ -699,6 +707,14 @@ export class CrmService {
       byUserId: actorId || null,
       at: now,
       createdAt: now,
+    });
+
+    await Audit.log({
+      actor: actorId || 'system',
+      action: 'lead.task_update',
+      resource: 'lead_task',
+      recordId: taskId,
+      after: { done: input.done, doneAt },
     });
 
     return {

@@ -89,6 +89,7 @@ export async function seed() {
     'member:read:own',
     'member:update',
     'member:delete',
+    'checkin:create',
     // Bookings
     'booking:create',
     'booking:create:own',
@@ -175,6 +176,7 @@ export async function seed() {
       'member:create',
       'member:read',
       'member:update',
+      'checkin:create',
       'booking:create',
       'booking:read',
       'booking:cancel',

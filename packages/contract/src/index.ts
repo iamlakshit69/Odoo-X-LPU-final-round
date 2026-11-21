@@ -10,3 +10,4 @@ export * from './shop.js';
 export * from './bar.js';
 export * from './finance.js';
 export * from './hr.js';
+export * from './fixtures/index.js';

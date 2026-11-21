@@ -12,17 +12,20 @@ import {
 import { Courts, CourtsService } from './service.js';
 import { guard } from '../../core/rbac.js';
 import { Audit } from '../../core/audit.js';
+import { rateLimitMiddleware } from '../../core/rateLimit.js';
 
 export { Courts, CourtsService };
 
 export async function register(app: FastifyInstance) {
+  const publicRateLimit = rateLimitMiddleware(20, 60 * 1000);
+
   // 1. GET /api/public/availability (public, rate-limited)
   const handlePublicAvailability = async (req: FastifyRequest) => {
     const query = getPublicAvailabilityQuerySchema.parse(req.query);
     return Courts.getAvailability(query.date, query.courtType, false);
   };
-  app.get('/api/public/availability', handlePublicAvailability);
-  app.get('/public/availability', handlePublicAvailability);
+  app.get('/api/public/availability', { preHandler: [publicRateLimit] }, handlePublicAvailability);
+  app.get('/public/availability', { preHandler: [publicRateLimit] }, handlePublicAvailability);
 
   // 2. GET /api/availability (staff, includes who booked)
   const handleStaffAvailability = async (req: FastifyRequest) => {

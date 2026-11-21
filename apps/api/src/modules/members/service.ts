@@ -953,6 +953,17 @@ export class MembersService {
       })
       .returning();
 
+    await Audit.log({
+      actor: input.staffUserId || 'system',
+      action: 'member.checkin',
+      resource: 'checkin',
+      recordId: rec.id,
+      after: {
+        memberId: member.id,
+        method: rec.method,
+      },
+    });
+
     return {
       checkin: {
         id: rec.id,
