@@ -8,7 +8,11 @@ import {
   Boxes,
   Coffee,
   Utensils,
+  LayoutDashboard,
+  Contact2,
   Receipt,
+  Wallet,
+  Users,
   Settings,
 } from 'lucide-react';
 import { useAuth } from '../../auth/AuthContext';
@@ -30,6 +34,20 @@ export function FloatingIconRail({ currentPath, onNavigate }: FloatingIconRailPr
   const { hasPermission, role } = useAuth();
 
   const items: RailItem[] = [
+    {
+      id: 'dashboard',
+      label: 'KPI Dashboard',
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      path: '/admin/dashboard',
+      permission: 'finance:read',
+    },
+    {
+      id: 'crm',
+      label: 'CRM Leads',
+      icon: <Contact2 className="w-5 h-5" />,
+      path: '/admin/crm',
+      permission: 'lead:read',
+    },
     {
       id: 'courts',
       label: 'Court Grid',
@@ -92,6 +110,34 @@ export function FloatingIconRail({ currentPath, onNavigate }: FloatingIconRailPr
       icon: <Coffee className="w-5 h-5 text-accent-orange" />,
       path: '/admin/kds/bar',
       permission: 'kds:read',
+    },
+    {
+      id: 'invoices',
+      label: 'Invoices',
+      icon: <Receipt className="w-5 h-5" />,
+      path: '/admin/finance/invoices',
+      permission: 'invoice:read',
+    },
+    {
+      id: 'expenses',
+      label: 'Expenses',
+      icon: <Wallet className="w-5 h-5" />,
+      path: '/admin/finance/expenses',
+      permission: 'expense:manage',
+    },
+    {
+      id: 'hr',
+      label: 'HR & Rota',
+      icon: <Users className="w-5 h-5" />,
+      path: '/admin/hr',
+      permission: 'hr:read',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <Settings className="w-5 h-5" />,
+      path: '/admin/settings',
+      permission: 'settings:manage',
     },
   ];
 

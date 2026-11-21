@@ -331,4 +331,241 @@ export const api = {
       return request<any>(`/api/reports/z?${q.toString()}`);
     },
   },
+
+  crm: {
+    listLeads: (params?: { stage?: string; assignedTo?: string; source?: string; limit?: number; cursor?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.stage) q.set('stage', params.stage);
+      if (params?.assignedTo) q.set('assignedTo', params.assignedTo);
+      if (params?.source) q.set('source', params.source);
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.cursor) q.set('cursor', params.cursor);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/leads?${q.toString()}`);
+    },
+    getLead: (id: string) => request<any>(`/api/leads/${id}`),
+    updateLead: (id: string, body: { stage?: string; assignedTo?: string | null; lostReason?: string | null; interest?: string }) =>
+      request<any>(`/api/leads/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    addNote: (id: string, body: string) =>
+      request<any>(`/api/leads/${id}/notes`, {
+        method: 'POST',
+        body: JSON.stringify({ body }),
+      }),
+    addTask: (id: string, body: { title: string; dueOn: string; assignedTo?: string }) =>
+      request<any>(`/api/leads/${id}/tasks`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateTask: (taskId: string, body: { done: boolean }) =>
+      request<any>(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    createQuote: (
+      id: string,
+      body: {
+        lines: Array<{ description: string; qty: number; unitPricePaise: number }>;
+        validUntil?: string;
+      }
+    ) =>
+      request<any>(`/api/leads/${id}/quotes`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    sendQuote: (quoteId: string) =>
+      request<{ success: boolean; quote: any; message?: string }>(`/api/quotes/${quoteId}/send`, {
+        method: 'POST',
+      }),
+    convertLead: (
+      id: string,
+      body: {
+        planCode: 'gold' | 'silver' | 'junior';
+        dob?: string;
+        photoUrl?: string;
+        notes?: string;
+      }
+    ) =>
+      request<{
+        memberId: string;
+        memberCode: string;
+        membershipId: string;
+        invoiceId: string;
+      }>(`/api/leads/${id}/convert`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+  },
+
+  finance: {
+    getSummary: (params: { from: string; to: string; group?: 'day' | 'week' | 'month' }) => {
+      const q = new URLSearchParams({ from: params.from, to: params.to });
+      if (params.group) q.set('group', params.group);
+      return request<any>(`/api/finance/summary?${q.toString()}`);
+    },
+    getReceivables: () => request<any>('/api/finance/receivables'),
+    getInvoices: (params?: { status?: string; memberId?: string; businessClientId?: string; limit?: number; cursor?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.status) q.set('status', params.status);
+      if (params?.memberId) q.set('memberId', params.memberId);
+      if (params?.businessClientId) q.set('businessClientId', params.businessClientId);
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.cursor) q.set('cursor', params.cursor);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/invoices?${q.toString()}`);
+    },
+    getInvoice: (id: string) => request<any>(`/api/invoices/${id}`),
+    createInvoice: (body: any) =>
+      request<any>('/api/invoices', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    getInvoicePdfHtml: (id: string) => request<string>(`/api/invoices/${id}/pdf`),
+    getExpenses: (params?: { status?: string; category?: string; limit?: number; cursor?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.status) q.set('status', params.status);
+      if (params?.category) q.set('category', params.category);
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.cursor) q.set('cursor', params.cursor);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/expenses?${q.toString()}`);
+    },
+    createExpense: (body: {
+      category: string;
+      description: string;
+      amountPaise: number;
+      incurredOn: string;
+      paid?: boolean;
+      receiptUrl?: string;
+    }) =>
+      request<any>('/api/expenses', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    approveExpense: (id: string, approve: boolean, note?: string) =>
+      request<any>(`/api/expenses/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ approve, note }),
+      }),
+  },
+
+  hr: {
+    getEmployees: (params?: { active?: boolean; limit?: number; cursor?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.active !== undefined) q.set('active', String(params.active));
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.cursor) q.set('cursor', params.cursor);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/employees?${q.toString()}`);
+    },
+    createEmployee: (body: {
+      name: string;
+      phone: string;
+      email: string;
+      roleTitle: string;
+      joinedOn: string;
+      active?: boolean;
+      userId?: string;
+    }) =>
+      request<any>('/api/employees', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    getWorkShifts: (params?: { employeeId?: string; from?: string; to?: string; area?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.employeeId) q.set('employeeId', params.employeeId);
+      if (params?.from) q.set('from', params.from);
+      if (params?.to) q.set('to', params.to);
+      if (params?.area) q.set('area', params.area);
+      return request<any[]>(`/api/work-shifts?${q.toString()}`);
+    },
+    getLeaveBalances: (employeeId?: string) => {
+      const q = new URLSearchParams();
+      if (employeeId) q.set('employeeId', employeeId);
+      return request<any[]>(`/api/leave/balances?${q.toString()}`);
+    },
+    createLeaveRequest: (body: {
+      employeeId: string;
+      leaveTypeId: string;
+      fromOn: string;
+      toOn: string;
+      days?: number;
+      reason?: string;
+    }) =>
+      request<any>('/api/leave/requests', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    approveLeaveRequest: (id: string, note?: string) =>
+      request<any>(`/api/leave/requests/${id}/approve`, {
+        method: 'POST',
+        body: JSON.stringify({ note }),
+      }),
+    rejectLeaveRequest: (id: string, reason: string) =>
+      request<any>(`/api/leave/requests/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+      }),
+    runPayroll: (month: string) =>
+      request<any>('/api/payroll/run', {
+        method: 'POST',
+        body: JSON.stringify({ month }),
+      }),
+    getPayslips: (params?: { month?: string; employeeId?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.month) q.set('month', params.month);
+      if (params?.employeeId) q.set('employeeId', params.employeeId);
+      return request<any[]>(`/api/payslips?${q.toString()}`);
+    },
+  },
+
+  admin: {
+    getSetting: (key: string) => request<{ key: string; value: any; description?: string }>(`/api/admin/settings/${key}`),
+    updateSetting: (key: string, value: any, description?: string) =>
+      request<{ key: string; value: any; description?: string }>(`/api/admin/settings/${key}`, {
+        method: 'PUT',
+        body: JSON.stringify({ value, description }),
+      }),
+    getPriceRules: (params?: { appliesTo?: string; tier?: string; active?: boolean; limit?: number }) => {
+      const q = new URLSearchParams();
+      if (params?.appliesTo) q.set('appliesTo', params.appliesTo);
+      if (params?.tier) q.set('tier', params.tier);
+      if (params?.active !== undefined) q.set('active', String(params.active));
+      if (params?.limit) q.set('limit', String(params.limit));
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/admin/price-rules?${q.toString()}`);
+    },
+    createPriceRule: (body: any) =>
+      request<any>('/api/admin/price-rules', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updatePriceRule: (id: string, body: any) =>
+      request<any>(`/api/admin/price-rules/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deletePriceRule: (id: string) =>
+      request<{ success: boolean }>(`/api/admin/price-rules/${id}`, {
+        method: 'DELETE',
+      }),
+    getTaxRates: () => request<any[]>('/api/admin/tax-rates'),
+    updateTaxRate: (id: string, body: { rateBps: number; description?: string }) =>
+      request<any>(`/api/admin/tax-rates/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    getRoles: () => request<any[]>('/api/admin/roles'),
+    updateRolePermissions: (roleId: string, permissionIds: string[]) =>
+      request<any>(`/api/admin/roles/${roleId}/permissions`, {
+        method: 'PUT',
+        body: JSON.stringify({ permissionIds }),
+      }),
+    getAuditLogs: (params?: { limit?: number; resource?: string; actor?: string; from?: string; to?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.limit) q.set('limit', String(params.limit));
+      if (params?.resource) q.set('resource', params.resource);
+      if (params?.actor) q.set('actor', params.actor);
+      if (params?.from) q.set('from', params.from);
+      if (params?.to) q.set('to', params.to);
+      return request<{ items: any[]; nextCursor?: string | null }>(`/api/admin/audit?${q.toString()}`);
+    },
+  },
 };

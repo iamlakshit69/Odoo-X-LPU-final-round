@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Bell, Search, LogOut, User as UserIcon, Shield, Sparkles } from 'lucide-react';
+import { Sun, Moon, Bell, Search, LogOut, User as UserIcon, Shield, Sparkles, Check } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext';
 
 interface TopPillNavbarProps {
@@ -14,9 +15,38 @@ export function TopPillNavbar({
   onOpenCommandPalette,
 }: TopPillNavbarProps) {
   const { user, role, logout, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('cc_theme') as 'light' | 'dark') || 'dark';
   });
+
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      const res = await fetch('/api/notifications', { credentials: 'include' });
+      if (!res.ok) return { items: [], total: 0 };
+      return res.json();
+    },
+    enabled: isAuthenticated,
+    refetchInterval: 30000,
+  });
+
+  const markReadMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/notifications/${id}/read`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  const unreadItems = (notifData?.items || []).filter((n: any) => n.status !== 'read');
+  const unreadCount = unreadItems.length;
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -126,12 +156,69 @@ export function TopPillNavbar({
           <div className="relative">
             <button
               aria-label="Notifications"
-              className="p-2 rounded-full border border-border bg-canvas/80 text-mutedText hover:text-primaryText transition-colors shadow-inner"
+              onClick={() => setShowNotifications((prev) => !prev)}
+              className="p-2 rounded-full border border-border bg-canvas/80 text-mutedText hover:text-primaryText transition-colors shadow-inner relative"
             >
               <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <>
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-orange animate-ping" />
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-orange" />
+                </>
+              )}
             </button>
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-orange animate-ping" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-accent-orange" />
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto rounded-2xl border border-border bg-surface p-3 shadow-2xl z-50 animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between pb-2 border-b border-border/60 mb-2">
+                  <span className="text-xs font-bold text-primaryText uppercase tracking-wider">
+                    Notifications {unreadCount > 0 ? `(${unreadCount})` : ''}
+                  </span>
+                  <button
+                    onClick={() => setShowNotifications(false)}
+                    className="text-[10px] text-mutedText hover:text-primaryText"
+                  >
+                    Close
+                  </button>
+                </div>
+                {notifData?.items?.length ? (
+                  <div className="space-y-2">
+                    {notifData.items.slice(0, 10).map((n: any) => (
+                      <div
+                        key={n.id}
+                        className={`p-2 rounded-xl text-xs border transition-colors ${
+                          n.status !== 'read'
+                            ? 'bg-accent-orange/10 border-accent-orange/30 text-primaryText'
+                            : 'bg-canvas/50 border-border/50 text-mutedText'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-1">
+                          <span className="font-semibold block">{n.template}</span>
+                          {n.status !== 'read' && (
+                            <button
+                              onClick={() => markReadMutation.mutate(n.id)}
+                              className="text-[10px] text-accent-orange hover:underline shrink-0"
+                            >
+                              Mark read
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[11px] mt-0.5 opacity-90">
+                          {n.payload?.body || n.payload?.title || n.payload?.name || JSON.stringify(n.payload || {})}
+                        </p>
+                        <span className="text-[9px] text-mutedText mt-1 block">
+                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-xs text-mutedText">
+                    No recent notifications
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* User Pill / Login state */}

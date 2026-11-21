@@ -8,7 +8,7 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   'order.item': [['orders'], ['kds']],
   'order.status': [['orders'], ['tabs']],
   'stock.low': [['inventory'], ['products']],
-  'lead.created': [['leads'], ['crm']],
+  'lead.created': [['leads'], ['crm'], ['notifications']],
   'dashboard.tick': [['finance'], ['dashboard'], ['invoices'], ['reports']],
 };
 

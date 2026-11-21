@@ -47,8 +47,50 @@ All API module routes are mounted with prefix `/api` in `apps/api/src/app.ts`:
 - **Finance & Invoices**:
   - `GET /api/invoices`
   - `GET /api/invoices/:id`
+  - `GET /api/invoices/:id/pdf`
   - `POST /api/invoices/:id/payments` (record cash / card / upi payment)
   - `POST /api/invoices`
+  - `GET /api/finance/summary?from=YYYY-MM-DD&to=YYYY-MM-DD`
+  - `GET /api/finance/receivables`
+  - `GET /api/finance/export?from=YYYY-MM-DD&to=YYYY-MM-DD`
+  - `GET /api/expenses`
+  - `POST /api/expenses`
+  - `POST /api/expenses/:id/approve`
+
+- **CRM & Leads**:
+  - `GET /api/leads`
+  - `GET /api/leads/:id`
+  - `PATCH /api/leads/:id`
+  - `POST /api/leads/:id/notes`
+  - `POST /api/leads/:id/tasks`
+  - `PATCH /api/tasks/:id`
+  - `POST /api/leads/:id/quotes`
+  - `POST /api/quotes/:id/send`
+  - `POST /api/leads/:id/convert`
+
+- **HR & Staff Management**:
+  - `GET /api/employees`
+  - `POST /api/employees`
+  - `GET /api/work-shifts`
+  - `GET /api/leave/balances`
+  - `POST /api/leave/requests`
+  - `POST /api/leave/requests/:id/approve`
+  - `POST /api/leave/requests/:id/reject`
+  - `POST /api/payroll/run`
+  - `GET /api/payslips`
+
+- **Admin & Settings**:
+  - `GET /api/admin/settings/:key`
+  - `PUT /api/admin/settings/:key`
+  - `GET /api/admin/price-rules`
+  - `POST /api/admin/price-rules`
+  - `PATCH /api/admin/price-rules/:id`
+  - `DELETE /api/admin/price-rules/:id`
+  - `GET /api/admin/tax-rates`
+  - `PUT /api/admin/tax-rates/:id`
+  - `GET /api/admin/roles`
+  - `PUT /api/admin/roles/:id/permissions`
+  - `GET /api/admin/audit`
 
 - **Shop & Inventory**:
   - `GET /api/products` (list products with variants)

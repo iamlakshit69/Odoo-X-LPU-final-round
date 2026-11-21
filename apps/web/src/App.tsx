@@ -17,6 +17,12 @@ import { ShopOrders } from './routes/admin/shop/ShopOrders';
 import { ShopStock } from './routes/admin/shop/ShopStock';
 import { BarConsole } from './routes/admin/bar/BarConsole';
 import { KdsScreen } from './routes/admin/kds/KdsScreen';
+import { CrmBoard } from './routes/admin/crm/CrmBoard';
+import { Dashboard } from './routes/admin/dashboard/Dashboard';
+import { Invoices } from './routes/admin/finance/Invoices';
+import { Expenses } from './routes/admin/finance/Expenses';
+import { HrManagement } from './routes/admin/hr/HrManagement';
+import { SettingsView } from './routes/admin/settings/SettingsView';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -104,6 +110,34 @@ function MainRouter() {
 
     if (currentPath === '/admin/kds/bar') {
       return <KdsScreen initialStation="bar" />;
+    }
+
+    if (currentPath === '/admin/crm') {
+      return (
+        <CrmBoard
+          onConvertSuccess={(memberId) => navigate(`/admin/desk?memberId=${memberId}`)}
+        />
+      );
+    }
+
+    if (currentPath === '/admin/dashboard') {
+      return <Dashboard />;
+    }
+
+    if (currentPath === '/admin/finance/invoices' || currentPath === '/admin/finance') {
+      return <Invoices />;
+    }
+
+    if (currentPath === '/admin/finance/expenses') {
+      return <Expenses />;
+    }
+
+    if (currentPath === '/admin/hr') {
+      return <HrManagement />;
+    }
+
+    if (currentPath === '/admin/settings') {
+      return <SettingsView />;
     }
 
     // Default to Public Landing
