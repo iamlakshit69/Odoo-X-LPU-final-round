@@ -26,7 +26,7 @@ export function HrManagement() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
-  const [activeTab, setActiveTab] = useState<'employees' | 'rota' | 'payroll'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'rota' | 'leaves' | 'payroll'>('employees');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
   // New Employee modal
@@ -96,6 +96,16 @@ export function HrManagement() {
     enabled: Boolean(selectedEmployeeId),
   });
 
+  // 5. All pending leave requests
+  const {
+    data: leaveRequestsData,
+    isLoading: isLeaveLoading,
+    refetch: refetchLeaveRequests,
+  } = useQuery({
+    queryKey: ['leave-requests'],
+    queryFn: () => api.hr.getLeaveRequests(),
+  });
+
   // Create Employee Mutation
   const createEmpMutation = useMutation({
     mutationFn: () =>
@@ -134,6 +144,7 @@ export function HrManagement() {
       setLeaveReason('');
       setLeaveError(null);
       if (selectedEmployeeId) refetchBalances();
+      refetchLeaveRequests();
     },
     onError: (err: any) => {
       const msg = err instanceof ApiClientError ? err.message : 'Leave request failed';
@@ -161,6 +172,7 @@ export function HrManagement() {
       setDecideRequestId('');
       setDecideNote('');
       if (selectedEmployeeId) refetchBalances();
+      refetchLeaveRequests();
     },
     onError: (err: any) => {
       const msg = err instanceof ApiClientError ? err.message : 'Action failed';
@@ -269,6 +281,20 @@ export function HrManagement() {
               </button>
             </div>
           )}
+
+          {activeTab === 'leaves' && (
+            <button
+              onClick={() => {
+                if (employeesData?.items?.[0]) {
+                  setLeaveEmployeeId(employeesData.items[0].id);
+                }
+                setShowLeaveModal(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-2xl bg-accent-orange text-white hover:bg-accent-orange/90 shadow-md"
+            >
+              <Plus className="w-4 h-4" /> Request Leave
+            </button>
+          )}
         </div>
       </div>
 
@@ -305,6 +331,22 @@ export function HrManagement() {
           }`}
         >
           <Briefcase className="w-4 h-4" /> Payroll & Payslips
+        </button>
+
+        <button
+          onClick={() => setActiveTab('leaves')}
+          className={`flex items-center gap-2 px-5 py-2.5 text-xs font-bold border-b-2 transition-all ${
+            activeTab === 'leaves'
+              ? 'border-accent-orange text-accent-orange'
+              : 'border-transparent text-mutedText hover:text-primaryText'
+          }`}
+        >
+          <Clock className="w-4 h-4" /> Leave Requests
+          {(leaveRequestsData?.items?.filter((r: any) => r.status === 'pending').length ?? 0) > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-accent-orange text-white text-[9px] font-bold">
+              {leaveRequestsData!.items.filter((r: any) => r.status === 'pending').length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -535,6 +577,104 @@ export function HrManagement() {
               <EmptyState
                 title="No payslips generated"
                 description="Run monthly payroll above to compute salary components and generate payslips."
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: Leave Requests */}
+      {activeTab === 'leaves' && (
+        <div className="space-y-6">
+          <div className="p-6 rounded-3xl bg-surface border border-border shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-primaryText">Staff Leave Requests</h3>
+                <p className="text-[11px] text-mutedText">
+                  Review, approve, or reject employee leave applications against statutory leave quotas.
+                </p>
+              </div>
+            </div>
+
+            {isLeaveLoading ? (
+              <LoadingState message="Loading leave applications..." />
+            ) : leaveRequestsData?.items?.length ? (
+              <div className="rounded-2xl border border-border overflow-hidden">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-canvas border-b border-border text-mutedText uppercase font-semibold">
+                    <tr>
+                      <th className="px-4 py-2.5">Staff Member</th>
+                      <th className="px-3 py-2.5">Leave Dates</th>
+                      <th className="px-3 py-2.5 text-center">Days</th>
+                      <th className="px-4 py-2.5">Reason</th>
+                      <th className="px-3 py-2.5 text-center">Status</th>
+                      <th className="px-4 py-2.5 text-right">Decision / Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {leaveRequestsData.items.map((req: any) => {
+                      const emp = employeesData?.items?.find((e: any) => e.id === req.employeeId);
+                      return (
+                        <tr key={req.id} className="hover:bg-canvas/50 transition-colors">
+                          <td className="px-4 py-2.5">
+                            <span className="font-bold text-primaryText block">
+                              {emp ? emp.name : req.employeeId.slice(0, 8)}
+                            </span>
+                            <span className="text-[10px] text-mutedText">{emp?.roleTitle || 'Employee'}</span>
+                          </td>
+                          <td className="px-3 py-2.5 text-mutedText whitespace-nowrap">
+                            {req.fromOn} <span className="text-accent-orange">→</span> {req.toOn}
+                          </td>
+                          <td className="px-3 py-2.5 text-center font-bold text-primaryText">
+                            {req.days} d
+                          </td>
+                          <td className="px-4 py-2.5 text-mutedText max-w-xs truncate">
+                            {req.reason || 'No reason provided'}
+                          </td>
+                          <td className="px-3 py-2.5 text-center">
+                            <StatusBadge status={req.status} />
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            {req.status === 'pending' ? (
+                              <div className="inline-flex items-center gap-1.5">
+                                <button
+                                  disabled={decideLeaveMutation.isPending}
+                                  onClick={() =>
+                                    decideLeaveMutation.mutate({
+                                      id: req.id,
+                                      approve: true,
+                                      note: 'Approved',
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                                >
+                                  <Check className="w-3.5 h-3.5" /> Approve
+                                </button>
+                                <button
+                                  disabled={decideLeaveMutation.isPending}
+                                  onClick={() => {
+                                    setDecideRequestId(req.id);
+                                    setShowDecideModal(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 border border-red-500/30 transition-colors"
+                                >
+                                  <X className="w-3.5 h-3.5" /> Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-mutedText">Decided</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <EmptyState
+                title="No leave requests found"
+                description="Staff leave applications will appear here for review."
               />
             )}
           </div>

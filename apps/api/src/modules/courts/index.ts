@@ -24,7 +24,6 @@ export async function register(app: FastifyInstance) {
     const query = getPublicAvailabilityQuerySchema.parse(req.query);
     return Courts.getAvailability(query.date, query.courtType, false);
   };
-  app.get('/api/public/availability', { preHandler: [publicRateLimit] }, handlePublicAvailability);
   app.get('/public/availability', { preHandler: [publicRateLimit] }, handlePublicAvailability);
 
   // 2. GET /api/availability (staff, includes who booked)
@@ -32,14 +31,12 @@ export async function register(app: FastifyInstance) {
     const query = getStaffAvailabilityQuerySchema.parse(req.query);
     return Courts.getAvailability(query.date, query.courtType, true);
   };
-  app.get('/api/availability', { preHandler: [guard('booking:read')] }, handleStaffAvailability);
   app.get('/availability', { preHandler: [guard('booking:read')] }, handleStaffAvailability);
 
   // 3. GET /api/admin/court-types
   const handleListCourtTypes = async () => {
     return Courts.listCourtTypes();
   };
-  app.get('/api/admin/court-types', { preHandler: [guard('court:manage')] }, handleListCourtTypes);
   app.get('/admin/court-types', { preHandler: [guard('court:manage')] }, handleListCourtTypes);
 
   // 4. PUT /api/admin/court-types/:id
@@ -56,14 +53,12 @@ export async function register(app: FastifyInstance) {
     });
     return res;
   };
-  app.put('/api/admin/court-types/:id', { preHandler: [guard('court:manage')] }, handleUpdateCourtType);
   app.put('/admin/court-types/:id', { preHandler: [guard('court:manage')] }, handleUpdateCourtType);
 
   // 5. GET /api/admin/courts
   const handleListCourts = async () => {
     return Courts.listCourts();
   };
-  app.get('/api/admin/courts', { preHandler: [guard('court:manage')] }, handleListCourts);
   app.get('/admin/courts', { preHandler: [guard('court:manage')] }, handleListCourts);
 
   // 6. POST /api/admin/courts
@@ -79,7 +74,6 @@ export async function register(app: FastifyInstance) {
     });
     return reply.status(201).send(res);
   };
-  app.post('/api/admin/courts', { preHandler: [guard('court:manage')] }, handleCreateCourt);
   app.post('/admin/courts', { preHandler: [guard('court:manage')] }, handleCreateCourt);
 
   // 7. PUT /api/admin/courts/:id
@@ -96,6 +90,5 @@ export async function register(app: FastifyInstance) {
     });
     return res;
   };
-  app.put('/api/admin/courts/:id', { preHandler: [guard('court:manage')] }, handleUpdateCourt);
   app.put('/admin/courts/:id', { preHandler: [guard('court:manage')] }, handleUpdateCourt);
 }

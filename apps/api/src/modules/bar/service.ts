@@ -228,10 +228,23 @@ export class BarService {
   }
 
   async closeTill(input: CloseTillRequest, actorUserId?: string): Promise<TillSession> {
+    // Resolve 'latest' to the most recently opened unclosed till session
+    let sessionId = input.tillSessionId;
+    if (!sessionId || sessionId === 'latest') {
+      const [latest] = await db
+        .select()
+        .from(tillSessions)
+        .where(sql`${tillSessions.closedAt} IS NULL`)
+        .orderBy(desc(tillSessions.openedAt))
+        .limit(1);
+      if (!latest) throw new AppError('NOT_FOUND', 'No open till session found', 404);
+      sessionId = latest.id;
+    }
+
     const [sess] = await db
       .select()
       .from(tillSessions)
-      .where(eq(tillSessions.id, input.tillSessionId))
+      .where(eq(tillSessions.id, sessionId))
       .limit(1);
 
     if (!sess) throw new AppError('NOT_FOUND', 'Till session not found', 404);
@@ -243,7 +256,7 @@ export class BarService {
         totalCash: sql<number>`COALESCE(SUM(${payments.amountPaise}), 0)::int`,
       })
       .from(payments)
-      .where(and(eq(payments.tillSessionId, input.tillSessionId), eq(payments.method, 'cash')));
+      .where(and(eq(payments.tillSessionId, sessionId), eq(payments.method, 'cash')));
 
     const totalCashCollected = Number(cashPmt?.totalCash ?? 0);
     const expectedCashPaise = sess.openingFloatPaise + totalCashCollected;
@@ -259,7 +272,7 @@ export class BarService {
         variancePaise,
         updatedAt: new Date(),
       })
-      .where(eq(tillSessions.id, input.tillSessionId))
+      .where(eq(tillSessions.id, sessionId))
       .returning();
 
     await Audit.log({

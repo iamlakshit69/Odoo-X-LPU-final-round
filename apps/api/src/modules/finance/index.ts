@@ -17,7 +17,6 @@ export { Finance, FinanceService };
 export async function register(app: FastifyInstance) {
   // 1. Business Clients CRUD
   const handleGetClients = async () => Finance.getBusinessClients();
-  app.get('/api/business-clients', { preHandler: [guard('client:manage')] }, handleGetClients);
   app.get('/business-clients', { preHandler: [guard('client:manage')] }, handleGetClients);
 
   const handleCreateClient = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -26,14 +25,12 @@ export async function register(app: FastifyInstance) {
     const res = await Finance.createBusinessClient(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/business-clients', { preHandler: [guard('client:manage')] }, handleCreateClient);
   app.post('/business-clients', { preHandler: [guard('client:manage')] }, handleCreateClient);
 
   const handleGetClient = async (req: FastifyRequest) => {
     const { id } = updateBusinessClientParamsSchema.parse(req.params);
     return Finance.getBusinessClient(id);
   };
-  app.get('/api/business-clients/:id', { preHandler: [guard('client:manage')] }, handleGetClient);
   app.get('/business-clients/:id', { preHandler: [guard('client:manage')] }, handleGetClient);
 
   const handleUpdateClient = async (req: FastifyRequest) => {
@@ -42,7 +39,6 @@ export async function register(app: FastifyInstance) {
     const body = updateBusinessClientRequestSchema.parse(req.body);
     return Finance.updateBusinessClient(id, body, user?.id);
   };
-  app.patch('/api/business-clients/:id', { preHandler: [guard('client:manage')] }, handleUpdateClient);
   app.patch('/business-clients/:id', { preHandler: [guard('client:manage')] }, handleUpdateClient);
 
   const handleDeleteClient = async (req: FastifyRequest) => {
@@ -50,7 +46,6 @@ export async function register(app: FastifyInstance) {
     const { id } = updateBusinessClientParamsSchema.parse(req.params);
     return Finance.deleteBusinessClient(id, user?.id);
   };
-  app.delete('/api/business-clients/:id', { preHandler: [guard('client:manage')] }, handleDeleteClient);
   app.delete('/business-clients/:id', { preHandler: [guard('client:manage')] }, handleDeleteClient);
 
   // 2. Finance Summary
@@ -58,12 +53,10 @@ export async function register(app: FastifyInstance) {
     const query = getFinanceSummaryQuerySchema.parse(req.query);
     return Finance.getSummary(query);
   };
-  app.get('/api/finance/summary', { preHandler: [guard('finance:read')] }, handleGetSummary);
   app.get('/finance/summary', { preHandler: [guard('finance:read')] }, handleGetSummary);
 
   // 3. Receivables & Aging Buckets
   const handleGetReceivables = async () => Finance.getReceivables();
-  app.get('/api/finance/receivables', { preHandler: [guard('finance:read')] }, handleGetReceivables);
   app.get('/finance/receivables', { preHandler: [guard('finance:read')] }, handleGetReceivables);
 
   // 4. CSV Export
@@ -74,7 +67,6 @@ export async function register(app: FastifyInstance) {
     reply.header('Content-Disposition', `attachment; filename="${res.filename}"`);
     return reply.send(res.csv);
   };
-  app.get('/api/finance/export', { preHandler: [guard('finance:read')] }, handleGetExport);
   app.get('/finance/export', { preHandler: [guard('finance:read')] }, handleGetExport);
 
   // 5. Share Snapshot (P1)
@@ -82,6 +74,5 @@ export async function register(app: FastifyInstance) {
     const body = shareFinanceRequestSchema.parse(req.body);
     return Finance.createShareLink(body.from, body.to);
   };
-  app.post('/api/finance/share', { preHandler: [guard('finance:share')] }, handleShare);
   app.post('/finance/share', { preHandler: [guard('finance:share')] }, handleShare);
 }

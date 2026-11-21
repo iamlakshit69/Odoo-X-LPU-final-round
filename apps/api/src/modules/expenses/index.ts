@@ -20,7 +20,6 @@ export async function register(app: FastifyInstance) {
     const query = getExpensesQuerySchema.parse(req.query);
     return Expenses.listExpenses(query);
   };
-  app.get('/api/expenses', { preHandler: [guard('expense:manage')] }, handleGetExpenses);
   app.get('/expenses', { preHandler: [guard('expense:manage')] }, handleGetExpenses);
 
   // POST /expenses
@@ -30,7 +29,6 @@ export async function register(app: FastifyInstance) {
     const res = await Expenses.createExpense(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/expenses', { preHandler: [guard('expense:manage')] }, handleCreateExpense);
   app.post('/expenses', { preHandler: [guard('expense:manage')] }, handleCreateExpense);
 
   // GET /expenses/:id
@@ -38,7 +36,6 @@ export async function register(app: FastifyInstance) {
     const { id } = updateExpenseParamsSchema.parse(req.params);
     return Expenses.getExpense(id);
   };
-  app.get('/api/expenses/:id', { preHandler: [guard('expense:manage')] }, handleGetExpense);
   app.get('/expenses/:id', { preHandler: [guard('expense:manage')] }, handleGetExpense);
 
   // PATCH /expenses/:id
@@ -48,7 +45,6 @@ export async function register(app: FastifyInstance) {
     const body = updateExpenseRequestSchema.parse(req.body);
     return Expenses.updateExpense(id, body, user?.id);
   };
-  app.patch('/api/expenses/:id', { preHandler: [guard('expense:manage')] }, handleUpdateExpense);
   app.patch('/expenses/:id', { preHandler: [guard('expense:manage')] }, handleUpdateExpense);
 
   // POST /expenses/:id/approve
@@ -58,6 +54,5 @@ export async function register(app: FastifyInstance) {
     const body = approveExpenseRequestSchema.parse(req.body);
     return Expenses.decideExpense(id, body.approve, user?.id);
   };
-  app.post('/api/expenses/:id/approve', { preHandler: [guard('expense:approve')] }, handleApproveExpense);
   app.post('/expenses/:id/approve', { preHandler: [guard('expense:approve')] }, handleApproveExpense);
 }

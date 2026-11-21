@@ -12,7 +12,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   hasPermission: (permission: string, ctx?: { ownerMemberId?: string }) => boolean;
-  login: (credentials: LoginRequest) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<string | null>;
   logout: () => Promise<void>;
   refreshMe: () => Promise<void>;
 }
@@ -71,12 +71,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [user, role, permissions, memberId]
   );
 
-  const login = async (credentials: LoginRequest) => {
+  const login = async (credentials: LoginRequest): Promise<string | null> => {
     try {
       setIsLoading(true);
       await api.auth.login(credentials);
-      await refreshMe();
+      const data = await api.auth.me();
+      setUser(data.user);
+      setRole(data.role);
+      setPermissions(data.permissions || []);
+      setMemberId(data.memberId);
+      setActivePlan(data.activePlan);
       showToast('success', 'Logged in successfully', `Welcome back, ${credentials.email}`);
+      return data.role;
     } catch (err) {
       showError(err, 'Failed to sign in. Please check your credentials.');
       throw err;

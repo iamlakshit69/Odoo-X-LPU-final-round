@@ -36,7 +36,6 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.createEnquiry(body);
     return reply.status(201).send(res);
   };
-  app.post('/api/public/enquiries', { preHandler: [publicRateLimit] }, handlePublicEnquiry);
   app.post('/public/enquiries', { preHandler: [publicRateLimit] }, handlePublicEnquiry);
 
   // 2. POST /api/public/trial-bookings
@@ -45,7 +44,6 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.createTrialBooking(body);
     return reply.status(201).send(res);
   };
-  app.post('/api/public/trial-bookings', { preHandler: [publicRateLimit] }, handlePublicTrialBooking);
   app.post('/public/trial-bookings', { preHandler: [publicRateLimit] }, handlePublicTrialBooking);
 
   // 3. GET /api/leads
@@ -59,7 +57,6 @@ export async function register(app: FastifyInstance) {
       limit: query.limit,
     });
   };
-  app.get('/api/leads', { preHandler: [guard('lead:read')] }, handleListLeads);
   app.get('/leads', { preHandler: [guard('lead:read')] }, handleListLeads);
 
   // 4. GET /api/leads/:id
@@ -67,7 +64,6 @@ export async function register(app: FastifyInstance) {
     const { id } = getLeadParamsSchema.parse(req.params);
     return Crm.getLead(id);
   };
-  app.get('/api/leads/:id', { preHandler: [guard('lead:read')] }, handleGetLead);
   app.get('/leads/:id', { preHandler: [guard('lead:read')] }, handleGetLead);
 
   // 5. PATCH /api/leads/:id
@@ -77,7 +73,6 @@ export async function register(app: FastifyInstance) {
     const user = (req as any).user as SessionUser | undefined;
     return Crm.updateLead(id, body, user?.id);
   };
-  app.patch('/api/leads/:id', { preHandler: [guard('lead:update')] }, handleUpdateLead);
   app.patch('/leads/:id', { preHandler: [guard('lead:update')] }, handleUpdateLead);
 
   // 6. POST /api/leads/:id/notes
@@ -88,7 +83,6 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.addNote(id, body.body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/leads/:id/notes', { preHandler: [guard('lead:update')] }, handleCreateNote);
   app.post('/leads/:id/notes', { preHandler: [guard('lead:update')] }, handleCreateNote);
 
   // 7. POST /api/leads/:id/tasks
@@ -99,7 +93,6 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.addTask(id, body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/leads/:id/tasks', { preHandler: [guard('lead:update')] }, handleCreateTask);
   app.post('/leads/:id/tasks', { preHandler: [guard('lead:update')] }, handleCreateTask);
 
   // 8. PATCH /api/tasks/:id
@@ -109,7 +102,6 @@ export async function register(app: FastifyInstance) {
     const user = (req as any).user as SessionUser | undefined;
     return Crm.updateTask(id, body, user?.id);
   };
-  app.patch('/api/tasks/:id', { preHandler: [guard('lead:update')] }, handleUpdateTask);
   app.patch('/tasks/:id', { preHandler: [guard('lead:update')] }, handleUpdateTask);
 
   // 9. POST /api/leads/:id/quotes
@@ -120,7 +112,6 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.createQuote(id, body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/leads/:id/quotes', { preHandler: [guard('quote:manage')] }, handleCreateQuote);
   app.post('/leads/:id/quotes', { preHandler: [guard('quote:manage')] }, handleCreateQuote);
 
   // 10. POST /api/quotes/:id/send
@@ -129,7 +120,6 @@ export async function register(app: FastifyInstance) {
     const user = (req as any).user as SessionUser | undefined;
     return Crm.sendQuote(id, user?.id);
   };
-  app.post('/api/quotes/:id/send', { preHandler: [guard('quote:manage')] }, handleSendQuote);
   app.post('/quotes/:id/send', { preHandler: [guard('quote:manage')] }, handleSendQuote);
 
   // 11. POST /api/leads/:id/convert
@@ -140,6 +130,5 @@ export async function register(app: FastifyInstance) {
     const res = await Crm.convertLead(id, body, user?.id);
     return reply.status(200).send(res);
   };
-  app.post('/api/leads/:id/convert', { preHandler: [guard('lead:convert')] }, handleConvertLead);
   app.post('/leads/:id/convert', { preHandler: [guard('lead:convert')] }, handleConvertLead);
 }

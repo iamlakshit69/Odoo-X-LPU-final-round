@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthContext';
 import { Shield, Lock, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface LoginProps {
-  onSuccess?: () => void;
+  onSuccess?: (role: string | null) => void;
 }
 
 const DEMO_ROLES = [
@@ -31,8 +31,8 @@ export function Login({ onSuccess }: LoginProps) {
 
     try {
       setIsSubmitting(true);
-      await login({ email, password });
-      onSuccess?.();
+      const role = await login({ email, password });
+      onSuccess?.(role);
     } catch {
       // toast shown by auth context
     } finally {
@@ -45,8 +45,8 @@ export function Login({ onSuccess }: LoginProps) {
     setPassword('demo1234');
     try {
       setIsSubmitting(true);
-      await login({ email: demoEmail, password: 'demo1234' });
-      onSuccess?.();
+      const role = await login({ email: demoEmail, password: 'demo1234' });
+      onSuccess?.(role);
     } catch {
       // toast handled
     } finally {

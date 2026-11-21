@@ -16,7 +16,6 @@ export async function register(app: FastifyInstance) {
     const query = getStockQuerySchema.parse(req.query);
     return Inventory.getStock(query);
   };
-  app.get('/api/stock', { preHandler: [guard('stock:read')] }, handleGetStock);
   app.get('/stock', { preHandler: [guard('stock:read')] }, handleGetStock);
 
   // POST /stock/movements
@@ -26,6 +25,5 @@ export async function register(app: FastifyInstance) {
     const res = await Inventory.recordMovement(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/stock/movements', { preHandler: [guard('stock:adjust')] }, handleStockMovement);
   app.post('/stock/movements', { preHandler: [guard('stock:adjust')] }, handleStockMovement);
 }

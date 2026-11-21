@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      try {
+        var t = localStorage.getItem('cc_theme');
+        if (t === 'dark' || t === null) document.documentElement.classList.add('dark');
+      } catch(e) {}
+    </script>
     <title>Champions Club | Elite Sports & Community</title>
     <meta name="description" content="Premier multi-sport club for tennis, padel, badminton, cricket, and community hospitality." />
     <script type="application/ld+json">

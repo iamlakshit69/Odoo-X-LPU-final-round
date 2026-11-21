@@ -37,7 +37,6 @@ export async function register(app: FastifyInstance) {
     const query = getMenuQuerySchema.parse(req.query);
     return Bar.getMenu(query);
   };
-  app.get('/api/admin/menu', { preHandler: [guard('menu:manage')] }, handleGetMenu);
   app.get('/admin/menu', { preHandler: [guard('menu:manage')] }, handleGetMenu);
 
   const handleCreateMenuItem = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -46,7 +45,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bar.createMenuItem(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/admin/menu', { preHandler: [guard('menu:manage')] }, handleCreateMenuItem);
   app.post('/admin/menu', { preHandler: [guard('menu:manage')] }, handleCreateMenuItem);
 
   const handleUpdateMenuItem = async (req: FastifyRequest) => {
@@ -55,14 +53,12 @@ export async function register(app: FastifyInstance) {
     const body = updateMenuItemRequestSchema.parse(req.body);
     return Bar.updateMenuItem(id, body, user?.id);
   };
-  app.patch('/api/admin/menu/:id', { preHandler: [guard('menu:manage')] }, handleUpdateMenuItem);
   app.patch('/admin/menu/:id', { preHandler: [guard('menu:manage')] }, handleUpdateMenuItem);
 
   // 2. Table Routes
   const handleGetTables = async () => {
     return Bar.getTables();
   };
-  app.get('/api/admin/tables', { preHandler: [guard('menu:manage')] }, handleGetTables);
   app.get('/admin/tables', { preHandler: [guard('menu:manage')] }, handleGetTables);
 
   const handleCreateTable = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -71,7 +67,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bar.createTable(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/admin/tables', { preHandler: [guard('menu:manage')] }, handleCreateTable);
   app.post('/admin/tables', { preHandler: [guard('menu:manage')] }, handleCreateTable);
 
   // 3. Till Routes
@@ -82,7 +77,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bar.openTill(body, user.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/till/open', { preHandler: [guard('till:manage')] }, handleOpenTill);
   app.post('/till/open', { preHandler: [guard('till:manage')] }, handleOpenTill);
 
   const handleCloseTill = async (req: FastifyRequest) => {
@@ -90,7 +84,6 @@ export async function register(app: FastifyInstance) {
     const body = closeTillRequestSchema.parse(req.body);
     return Bar.closeTill(body, user?.id);
   };
-  app.post('/api/till/close', { preHandler: [guard('till:manage')] }, handleCloseTill);
   app.post('/till/close', { preHandler: [guard('till:manage')] }, handleCloseTill);
 
   // 4. Tab Routes
@@ -101,7 +94,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bar.createTab(body, user);
     return reply.status(201).send(res);
   };
-  app.post('/api/tabs', { preHandler: [guard('tab:create')] }, handleCreateTab);
   app.post('/tabs', { preHandler: [guard('tab:create')] }, handleCreateTab);
 
   const handleGetTab = async (req: FastifyRequest) => {
@@ -114,7 +106,6 @@ export async function register(app: FastifyInstance) {
     }
     return tab;
   };
-  app.get('/api/tabs/:id', { preHandler: [guard('tab:read')] }, handleGetTab);
   app.get('/tabs/:id', { preHandler: [guard('tab:read')] }, handleGetTab);
 
   const handleAddTabItem = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -124,7 +115,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bar.addItemToTab(id, body, user);
     return reply.status(201).send(res);
   };
-  app.post('/api/tabs/:id/items', { preHandler: [guard('tab:update')] }, handleAddTabItem);
   app.post('/tabs/:id/items', { preHandler: [guard('tab:update')] }, handleAddTabItem);
 
   const handleUpdateItemStatus = async (req: FastifyRequest) => {
@@ -133,7 +123,6 @@ export async function register(app: FastifyInstance) {
     const { status } = updateTabItemStatusRequestSchema.parse(req.body);
     return Bar.updateTabItemStatus(id, status, user);
   };
-  app.post('/api/tab-items/:id/status', { preHandler: [guard('kds:update')] }, handleUpdateItemStatus);
   app.post('/tab-items/:id/status', { preHandler: [guard('kds:update')] }, handleUpdateItemStatus);
 
   const handleVoidItem = async (req: FastifyRequest) => {
@@ -142,7 +131,6 @@ export async function register(app: FastifyInstance) {
     const { voidReason } = voidTabItemRequestSchema.parse(req.body);
     return Bar.voidTabItem(id, voidReason, user);
   };
-  app.post('/api/tab-items/:id/void', { preHandler: [guard('tab:void')] }, handleVoidItem);
   app.post('/tab-items/:id/void', { preHandler: [guard('tab:void')] }, handleVoidItem);
 
   const handleSettleTab = async (req: FastifyRequest) => {
@@ -151,7 +139,6 @@ export async function register(app: FastifyInstance) {
     const body = settleTabRequestSchema.parse(req.body);
     return Bar.settleTab(id, body, user);
   };
-  app.post('/api/tabs/:id/settle', { preHandler: [guard('tab:settle')] }, handleSettleTab);
   app.post('/tabs/:id/settle', { preHandler: [guard('tab:settle')] }, handleSettleTab);
 
   // 5. Transfer & Merge Tabs (P1)
@@ -161,7 +148,6 @@ export async function register(app: FastifyInstance) {
     const body = transferTabRequestSchema.parse(req.body);
     return Bar.transferTab(id, body, user);
   };
-  app.post('/api/tabs/:id/transfer', { preHandler: [guard('tab:update')] }, handleTransferTab);
   app.post('/tabs/:id/transfer', { preHandler: [guard('tab:update')] }, handleTransferTab);
 
   const handleMergeTab = async (req: FastifyRequest) => {
@@ -170,7 +156,6 @@ export async function register(app: FastifyInstance) {
     const body = mergeTabRequestSchema.parse(req.body);
     return Bar.mergeTab(id, body.targetTabId, user);
   };
-  app.post('/api/tabs/:id/merge', { preHandler: [guard('tab:update')] }, handleMergeTab);
   app.post('/tabs/:id/merge', { preHandler: [guard('tab:update')] }, handleMergeTab);
 
   // 6. KDS Screen
@@ -178,7 +163,6 @@ export async function register(app: FastifyInstance) {
     const { station } = getKdsQuerySchema.parse(req.query);
     return Bar.getKds(station);
   };
-  app.get('/api/kds', { preHandler: [guard('kds:read')] }, handleGetKds);
   app.get('/kds', { preHandler: [guard('kds:read')] }, handleGetKds);
 
   // 7. Z-Report
@@ -186,6 +170,5 @@ export async function register(app: FastifyInstance) {
     const { date } = getZReportQuerySchema.parse(req.query);
     return Bar.getZReport(date);
   };
-  app.get('/api/reports/z', { preHandler: [guard('report:read')] }, handleGetZReport);
   app.get('/reports/z', { preHandler: [guard('report:read')] }, handleGetZReport);
 }

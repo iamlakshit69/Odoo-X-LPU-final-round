@@ -15,7 +15,6 @@ export async function register(app: FastifyInstance) {
   const handleGetTaxRates = async () => {
     return Tax.getTaxRates();
   };
-  app.get('/api/admin/tax-rates', { preHandler: [guard('tax:manage')] }, handleGetTaxRates);
   app.get('/admin/tax-rates', { preHandler: [guard('tax:manage')] }, handleGetTaxRates);
 
   // PUT /admin/tax-rates/:id
@@ -25,6 +24,5 @@ export async function register(app: FastifyInstance) {
     const body = updateTaxRateRequestSchema.parse(req.body);
     return Tax.updateTaxRate(id, body, user?.id);
   };
-  app.put('/api/admin/tax-rates/:id', { preHandler: [guard('tax:manage')] }, handleUpdateTaxRate);
   app.put('/admin/tax-rates/:id', { preHandler: [guard('tax:manage')] }, handleUpdateTaxRate);
 }

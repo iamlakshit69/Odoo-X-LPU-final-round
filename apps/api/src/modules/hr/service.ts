@@ -382,6 +382,35 @@ export class HrService {
   }
 
   // 4. Leave Balances & Requests (Section 7.9 & Section 14 T12)
+  async listLeaveRequests(query: { employeeId?: string; status?: string }): Promise<{ items: LeaveRequest[] }> {
+    const conds: any[] = [];
+    if (query.employeeId) conds.push(eq(leaveRequests.employeeId, query.employeeId));
+    if (query.status) conds.push(eq(leaveRequests.status, query.status as LeaveRequestStatus));
+
+    const rows = await db
+      .select()
+      .from(leaveRequests)
+      .where(conds.length > 0 ? and(...conds) : undefined)
+      .orderBy(desc(leaveRequests.createdAt))
+      .limit(100);
+
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        employeeId: r.employeeId,
+        leaveTypeId: r.leaveTypeId,
+        fromOn: String(r.fromOn),
+        toOn: String(r.toOn),
+        days: r.days,
+        reason: r.reason ?? undefined,
+        status: r.status as LeaveRequestStatus,
+        decidedBy: r.decidedBy ?? undefined,
+        decidedAt: r.decidedAt ? r.decidedAt.toISOString() : undefined,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
+  }
+
   async getLeaveBalances(employeeId: string): Promise<LeaveBalance[]> {
     const currentYear = new Date().getFullYear();
     const rows = await db

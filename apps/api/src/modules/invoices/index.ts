@@ -90,7 +90,6 @@ export async function register(app: FastifyInstance) {
     const html = await Invoices.renderInvoicePdfHtml(id);
     return reply.type('text/html').send(html);
   };
-  app.get('/api/invoices/:id/pdf', { preHandler: [guard('invoice:read')] }, handleGetPdf);
   app.get('/invoices/:id/pdf', { preHandler: [guard('invoice:read')] }, handleGetPdf);
 
   // 4. POST /invoices (manual / corporate invoice)
@@ -123,6 +122,5 @@ export async function register(app: FastifyInstance) {
 
     return reply.status(201).send({ ...res, status: 'issued' });
   };
-  app.post('/api/invoices', { preHandler: [guard('invoice:create')] }, handleCreateInvoice);
   app.post('/invoices', { preHandler: [guard('invoice:create')] }, handleCreateInvoice);
 }

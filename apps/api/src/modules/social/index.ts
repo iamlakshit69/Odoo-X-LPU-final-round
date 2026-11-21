@@ -21,7 +21,6 @@ export async function register(app: FastifyInstance) {
     const query = getSocialSessionsQuerySchema.parse(req.query || {});
     return Social.listSessions(query);
   };
-  app.get('/api/social/sessions', handleListSessions);
   app.get('/social/sessions', handleListSessions);
 
   // 2. POST /api/social/sessions
@@ -31,7 +30,6 @@ export async function register(app: FastifyInstance) {
     const res = await Social.createSession(body, user);
     return reply.status(201).send(res);
   };
-  app.post('/api/social/sessions', { preHandler: [guard('court:manage')] }, handleCreateSession);
   app.post('/social/sessions', { preHandler: [guard('court:manage')] }, handleCreateSession);
 
   // 3. POST /api/social/sessions/:id/signup

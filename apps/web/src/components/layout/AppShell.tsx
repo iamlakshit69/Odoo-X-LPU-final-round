@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { TopPillNavbar } from './TopPillNavbar';
 import { FloatingIconRail } from './FloatingIconRail';
 import { useAuth } from '../../auth/AuthContext';
-import { Search, X, ArrowRight, UserCheck, CalendarDays, UserPlus } from 'lucide-react';
+import {
+  Search, X, ArrowRight, UserCheck, CalendarDays, UserPlus,
+  LayoutDashboard, Contact2, Receipt, Wallet, Users, Settings, UserCircle,
+} from 'lucide-react';
 
 interface AppShellProps {
   currentPath: string;
@@ -38,6 +41,13 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
     { title: 'Lounge Bar Floor Plan', icon: <ArrowRight className="w-4 h-4 text-amber-500" />, path: '/admin/bar' },
     { title: 'Kitchen KDS Station', icon: <ArrowRight className="w-4 h-4 text-red-500" />, path: '/admin/kds/kitchen' },
     { title: 'Bar KDS Station', icon: <ArrowRight className="w-4 h-4 text-cyan-500" />, path: '/admin/kds/bar' },
+    { title: 'KPI Dashboard', icon: <LayoutDashboard className="w-4 h-4 text-accent-orange" />, path: '/admin/dashboard' },
+    { title: 'CRM Leads Board', icon: <Contact2 className="w-4 h-4 text-orange-500" />, path: '/admin/crm' },
+    { title: 'Finance – Invoices', icon: <Receipt className="w-4 h-4 text-yellow-500" />, path: '/admin/finance/invoices' },
+    { title: 'Finance – Expenses', icon: <Wallet className="w-4 h-4 text-green-500" />, path: '/admin/finance/expenses' },
+    { title: 'HR Management', icon: <Users className="w-4 h-4 text-indigo-500" />, path: '/admin/hr' },
+    { title: 'Club Settings', icon: <Settings className="w-4 h-4 text-mutedText" />, path: '/admin/settings' },
+    { title: 'Member Portal', icon: <UserCircle className="w-4 h-4 text-lime-500" />, path: '/portal' },
     { title: 'Public Home & Sports Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
   ].filter((item) => item.title.toLowerCase().includes(cmdSearch.toLowerCase()));
 

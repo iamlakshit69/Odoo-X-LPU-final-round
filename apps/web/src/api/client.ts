@@ -482,6 +482,12 @@ export const api = {
       if (employeeId) q.set('employeeId', employeeId);
       return request<any[]>(`/api/leave/balances?${q.toString()}`);
     },
+    getLeaveRequests: (params?: { employeeId?: string; status?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.employeeId) q.set('employeeId', params.employeeId);
+      if (params?.status) q.set('status', params.status);
+      return request<{ items: any[] }>(`/api/leave/requests?${q.toString()}`);
+    },
     createLeaveRequest: (body: {
       employeeId: string;
       leaveTypeId: string;

@@ -85,7 +85,6 @@ export async function register(app: FastifyInstance) {
     const { id } = markNoShowParamsSchema.parse(req.params);
     return Bookings.markNoShow(id, user);
   };
-  app.post('/api/bookings/:id/no-show', { preHandler: [guard('booking:update')] }, handleNoShow);
   app.post('/bookings/:id/no-show', { preHandler: [guard('booking:update')] }, handleNoShow);
 
   // 4. POST /api/bookings/:id/complete
@@ -94,7 +93,6 @@ export async function register(app: FastifyInstance) {
     const { id } = completeBookingParamsSchema.parse(req.params);
     return Bookings.completeBooking(id, user);
   };
-  app.post('/api/bookings/:id/complete', { preHandler: [guard('booking:update')] }, handleComplete);
   app.post('/bookings/:id/complete', { preHandler: [guard('booking:update')] }, handleComplete);
 
   // 5. POST /api/bookings/blocks (maintenance block)
@@ -104,7 +102,6 @@ export async function register(app: FastifyInstance) {
     const res = await Bookings.createBlockBooking(body, user);
     return reply.status(201).send(res);
   };
-  app.post('/api/bookings/blocks', { preHandler: [guard('booking:block')] }, handleBlock);
   app.post('/bookings/blocks', { preHandler: [guard('booking:block')] }, handleBlock);
 
   // 6. GET /api/bookings

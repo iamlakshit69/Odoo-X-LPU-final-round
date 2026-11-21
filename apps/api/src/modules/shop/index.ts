@@ -30,7 +30,6 @@ export async function register(app: FastifyInstance) {
     const query = getPublicProductsQuerySchema.parse(req.query);
     return Shop.getPublicProducts(query);
   };
-  app.get('/api/public/products', { preHandler: [rateLimitMiddleware(20, 60_000)] }, handlePublicProducts);
   app.get('/public/products', { preHandler: [rateLimitMiddleware(20, 60_000)] }, handlePublicProducts);
 
   // 2. GET /public/products/:id
@@ -38,7 +37,6 @@ export async function register(app: FastifyInstance) {
     const { id } = getPublicProductParamsSchema.parse(req.params);
     return Shop.getPublicProduct(id);
   };
-  app.get('/api/public/products/:id', { preHandler: [rateLimitMiddleware(30, 60_000)] }, handlePublicProductDetail);
   app.get('/public/products/:id', { preHandler: [rateLimitMiddleware(30, 60_000)] }, handlePublicProductDetail);
 
   // 3. GET /products
@@ -46,7 +44,6 @@ export async function register(app: FastifyInstance) {
     const query = getProductsQuerySchema.parse(req.query);
     return Shop.getProducts(query);
   };
-  app.get('/api/products', { preHandler: [guard('product:manage')] }, handleGetProducts);
   app.get('/products', { preHandler: [guard('product:manage')] }, handleGetProducts);
 
   // 4. POST /products
@@ -56,7 +53,6 @@ export async function register(app: FastifyInstance) {
     const res = await Shop.createProduct(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/products', { preHandler: [guard('product:manage')] }, handleCreateProduct);
   app.post('/products', { preHandler: [guard('product:manage')] }, handleCreateProduct);
 
   // 5. PATCH /products/:id
@@ -66,7 +62,6 @@ export async function register(app: FastifyInstance) {
     const body = updateProductRequestSchema.parse(req.body);
     return Shop.updateProduct(id, body, user?.id);
   };
-  app.patch('/api/products/:id', { preHandler: [guard('product:manage')] }, handleUpdateProduct);
   app.patch('/products/:id', { preHandler: [guard('product:manage')] }, handleUpdateProduct);
 
   // 6. POST /variants
@@ -76,7 +71,6 @@ export async function register(app: FastifyInstance) {
     const res = await Shop.createVariant(body, user?.id);
     return reply.status(201).send(res);
   };
-  app.post('/api/variants', { preHandler: [guard('product:manage')] }, handleCreateVariant);
   app.post('/variants', { preHandler: [guard('product:manage')] }, handleCreateVariant);
 
   // 7. PATCH /variants/:id
@@ -86,7 +80,6 @@ export async function register(app: FastifyInstance) {
     const body = updateVariantRequestSchema.parse(req.body);
     return Shop.updateVariant(id, body, user?.id);
   };
-  app.patch('/api/variants/:id', { preHandler: [guard('product:manage')] }, handleUpdateVariant);
   app.patch('/variants/:id', { preHandler: [guard('product:manage')] }, handleUpdateVariant);
 
   // 8. POST /orders

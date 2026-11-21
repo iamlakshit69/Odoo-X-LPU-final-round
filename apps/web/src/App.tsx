@@ -39,7 +39,7 @@ function MainRouter() {
     return window.location.pathname || '/';
   });
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // Activate realtime SSE topic-to-query-key synchronization
   useSSE();
@@ -60,7 +60,11 @@ function MainRouter() {
 
   const renderCurrentScreen = () => {
     if (currentPath === '/login') {
-      return <Login onSuccess={() => navigate('/admin/courts')} />;
+      return <Login onSuccess={(role) => navigate(role === 'member' ? '/portal' : '/admin/courts')} />;
+    }
+    if (!isAuthenticated && (currentPath.startsWith('/admin') || currentPath === '/portal')) {
+      navigate('/login');
+      return null;
     }
 
     if (currentPath === '/portal') {

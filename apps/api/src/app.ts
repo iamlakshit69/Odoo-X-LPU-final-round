@@ -4,7 +4,7 @@ import cors from '@fastify/cors';
 import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import { randomUUID } from 'node:crypto';
 import { errorHandler } from './core/errors.js';
-import { registerAuthRoutes } from './core/auth.js';
+import { registerAuthRoutes, optionalAuth } from './core/auth.js';
 import { register as registerAdmin } from './modules/admin/index.js';
 import { registerEventRoutes } from './core/events.js';
 import { registerNotificationRoutes } from './core/notifications.js';
@@ -63,6 +63,8 @@ export function buildApp() {
   app.register(cookie, {
     secret: process.env.SESSION_SECRET || 'champions_club_secret_session_key_minimum_32_characters',
   });
+
+  app.addHook('preHandler', optionalAuth);
 
   app.register(cors, {
     origin: true,

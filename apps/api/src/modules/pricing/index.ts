@@ -28,7 +28,7 @@ export type { PricingEngine };
 
 export async function register(app: FastifyInstance) {
   // POST /api/pricing/quote
-  app.post('/api/pricing/quote', {
+  app.post('/pricing/quote', {
     preHandler: [guard('pricing:quote')],
     schema: {
       body: postPricingQuoteRequestSchema,
@@ -49,7 +49,7 @@ export async function register(app: FastifyInstance) {
   });
 
   // GET /api/admin/price-rules
-  app.get('/api/admin/price-rules', {
+  app.get('/admin/price-rules', {
     preHandler: [guard('pricing:manage')],
     schema: {
       querystring: getPriceRulesQuerySchema,
@@ -74,7 +74,7 @@ export async function register(app: FastifyInstance) {
   });
 
   // POST /api/admin/price-rules
-  app.post('/api/admin/price-rules', {
+  app.post('/admin/price-rules', {
     preHandler: [guard('pricing:manage')],
     schema: {
       body: createPriceRuleRequestSchema,
@@ -111,7 +111,7 @@ export async function register(app: FastifyInstance) {
   });
 
   // PATCH /api/admin/price-rules/:id
-  app.patch('/api/admin/price-rules/:id', {
+  app.patch('/admin/price-rules/:id', {
     preHandler: [guard('pricing:manage')],
     schema: {
       params: updatePriceRuleParamsSchema,
@@ -156,7 +156,7 @@ export async function register(app: FastifyInstance) {
   });
 
   // DELETE /api/admin/price-rules/:id  (soft-delete: active = false)
-  app.delete('/api/admin/price-rules/:id', {
+  app.delete('/admin/price-rules/:id', {
     preHandler: [guard('pricing:manage')],
     schema: {
       params: deletePriceRuleParamsSchema,
