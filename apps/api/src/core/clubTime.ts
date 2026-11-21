@@ -30,6 +30,13 @@ export function toClubLocalDate(instant: Date, timeZone = DEFAULT_CLUB_TIMEZONE)
 }
 
 /**
+ * Returns today's club local date string formatted as 'YYYY-MM-DD'.
+ */
+export function clubLocalToday(timeZone = DEFAULT_CLUB_TIMEZONE): string {
+  return toClubLocalDate(new Date(), timeZone);
+}
+
+/**
  * Returns the club local weekday: 0 = Sunday, 1 = Monday, ..., 6 = Saturday.
  */
 export function toClubLocalWeekday(instant: Date, timeZone = DEFAULT_CLUB_TIMEZONE): number {

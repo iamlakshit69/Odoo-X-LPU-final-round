@@ -6,6 +6,8 @@ import { randomUUID } from 'node:crypto';
 import { errorHandler } from './core/errors.js';
 import { registerAuthRoutes } from './core/auth.js';
 import { register as registerAdmin } from './modules/admin/index.js';
+import { registerEventRoutes } from './core/events.js';
+import { registerNotificationRoutes } from './core/notifications.js';
 
 // Dev A module routers
 import { register as registerMembers } from './modules/members/index.js';
@@ -17,6 +19,8 @@ import { register as registerCrm } from './modules/crm/index.js';
 
 export async function registerModules(app: ReturnType<typeof Fastify>) {
   await registerAuthRoutes(app);
+  await registerEventRoutes(app);
+  await registerNotificationRoutes(app);
   await registerAdmin(app);
   await registerMembers(app);
   await registerCourts(app);
@@ -51,6 +55,9 @@ export function buildApp() {
   app.get('/health', async () => {
     return { status: 'ok' };
   });
+
+  // Support root-level /events and /public/events as well as /api/events
+  registerEventRoutes(app);
 
   // Register all modules under /api prefix
   app.register(registerModules, { prefix: '/api' });
