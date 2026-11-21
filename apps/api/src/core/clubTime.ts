@@ -4,7 +4,17 @@
  * Default club timezone is 'Asia/Kolkata'.
  */
 
+import { Settings } from './settings.js';
+
 export const DEFAULT_CLUB_TIMEZONE = 'Asia/Kolkata';
+
+/**
+ * Reads configured club timezone from settings, falling back to 'Asia/Kolkata'.
+ */
+export async function getClubTimezone(): Promise<string> {
+  const tz = await Settings.get<string>('club.timezone');
+  return tz || DEFAULT_CLUB_TIMEZONE;
+}
 
 /**
  * Returns the club local date string formatted as 'YYYY-MM-DD'.
