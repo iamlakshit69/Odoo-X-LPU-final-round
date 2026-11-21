@@ -1,1 +1,2 @@
--- Owner: Dev A. Extensions (btree_gist, pgcrypto). Idempotent.
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

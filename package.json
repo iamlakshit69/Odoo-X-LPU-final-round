@@ -2,9 +2,12 @@
   "name": "champions-club",
   "private": true,
   "version": "0.0.0",
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "dev": "echo \"wired up in phase 0\"",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "dev": "pnpm --filter @club/api dev",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:reset": "pnpm --filter @club/api db:reset",
+    "db:seed": "pnpm --filter @club/api db:seed"
   }
 }
