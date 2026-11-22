@@ -40,15 +40,18 @@ export async function resetDatabase() {
       await client.query(extSql);
     }
 
-    // 2. Run drizzle-kit push
-    console.log('[db:reset] Running drizzle-kit push...');
-    const apiRoot = path.join(__dirname, '..');
-    execSync('npx tsx ./node_modules/drizzle-kit/bin.cjs push --force --config=drizzle.config.ts', {
-      cwd: apiRoot,
-      stdio: 'inherit',
-      env: { ...process.env, DATABASE_URL: databaseUrl },
-    });
-    console.log('[db:reset] Drizzle push complete.');
+    // 2. Apply Drizzle migration SQL directly without heavy drizzle-kit CLI
+    console.log('[db:reset] Applying Drizzle schema migrations...');
+    const drizzleDir = path.join(__dirname, '../drizzle');
+    if (fs.existsSync(drizzleDir)) {
+      const files = fs.readdirSync(drizzleDir).filter((f) => f.endsWith('.sql')).sort();
+      for (const file of files) {
+        console.log(`[db:reset] Applying migration: ${file}...`);
+        const sql = fs.readFileSync(path.join(drizzleDir, file), 'utf-8');
+        await client.query(sql);
+      }
+    }
+    console.log('[db:reset] Drizzle migrations complete.');
 
     // 3. Apply db/sql/*.sql in filename order
     const sqlDir = path.join(__dirname, '../src/db/sql');

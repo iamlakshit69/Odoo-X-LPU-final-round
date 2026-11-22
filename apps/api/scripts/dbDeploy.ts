@@ -42,13 +42,20 @@ export async function deployDatabase() {
       await client.query(extSql);
     }
 
-    // Drizzle push
-    const apiRoot = path.join(__dirname, '..');
-    execSync('npx tsx ./node_modules/drizzle-kit/bin.cjs push --force --config=drizzle.config.ts', {
-      cwd: apiRoot,
-      stdio: 'inherit',
-      env: { ...process.env, DATABASE_URL: databaseUrl },
-    });
+    // Apply Drizzle SQL migrations directly (lightweight, zero memory overhead)
+    const drizzleDir = path.join(__dirname, '../drizzle');
+    if (fs.existsSync(drizzleDir)) {
+      const files = fs.readdirSync(drizzleDir).filter((f) => f.endsWith('.sql')).sort();
+      for (const file of files) {
+        console.log(`[db:deploy] Applying migration: ${file}...`);
+        const sql = fs.readFileSync(path.join(drizzleDir, file), 'utf-8');
+        try {
+          await client.query(sql);
+        } catch (err: any) {
+          console.log(`[db:deploy] Note on migration ${file}: ${err.message}`);
+        }
+      }
+    }
 
     // Apply SQL files
     const sqlDir = path.join(__dirname, '../src/db/sql');
