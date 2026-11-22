@@ -76,6 +76,7 @@ export const tabItemSchema = z.object({
   voidReason: z.string().nullable().optional(),
   addedBy: uuidSchema.nullable().optional(),
   createdAt: timestampAtSchema.optional(),
+  updatedAt: timestampAtSchema.optional(),
 });
 export type TabItem = z.infer<typeof tabItemSchema>;
 
@@ -249,6 +250,7 @@ export const mergeTabResponseSchema = tabSchema;
 // 14. GET /kds?station=
 export const getKdsQuerySchema = z.object({
   station: menuStationSchema,
+  history: z.coerce.boolean().optional(),
 });
 export const getKdsResponseSchema = z.array(kdsItemSchema);
 

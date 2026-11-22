@@ -160,8 +160,8 @@ export async function register(app: FastifyInstance) {
 
   // 6. KDS Screen
   const handleGetKds = async (req: FastifyRequest) => {
-    const { station } = getKdsQuerySchema.parse(req.query);
-    return Bar.getKds(station);
+    const { station, history } = getKdsQuerySchema.parse(req.query);
+    return Bar.getKds(station, history);
   };
   app.get('/kds', { preHandler: [guard('kds:read')] }, handleGetKds);
 

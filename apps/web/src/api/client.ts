@@ -322,8 +322,9 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
-    getKds: (station: 'kitchen' | 'bar') => {
+    getKds: (station: 'kitchen' | 'bar', history?: boolean) => {
       const q = new URLSearchParams({ station });
+      if (history) q.set('history', 'true');
       return request<any[]>(`/api/kds?${q.toString()}`);
     },
     getZReport: (date: string) => {

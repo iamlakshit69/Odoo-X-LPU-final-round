@@ -632,33 +632,62 @@ export class BarService {
   }
 
   // 6. Kitchen Display System (KDS)
-  async getKds(station: MenuStation): Promise<KdsItem[]> {
-    const res = await db.execute(sql`
-      SELECT
-        ti.id,
-        ti.tab_id AS "tabId",
-        ti.menu_item_id AS "menuItemId",
-        mi.name AS "menuItemName",
-        mi.station,
-        ti.qty,
-        ti.unit_price_paise AS "unitPricePaise",
-        ti.price_breakdown AS "priceBreakdown",
-        ti.status,
-        ti.void_reason AS "voidReason",
-        ti.added_by AS "addedBy",
-        ti.created_at AS "createdAt",
-        bt.label AS "tableLabel",
-        t.guest_label AS "guestLabel",
-        ti.created_at AS "orderTime"
-      FROM tab_items ti
-      JOIN menu_items mi ON ti.menu_item_id = mi.id
-      JOIN tabs t ON ti.tab_id = t.id
-      LEFT JOIN bar_tables bt ON t.table_id = bt.id
-      WHERE mi.station = ${station}
-        AND ti.status IN ('pending', 'preparing', 'ready')
-        AND t.status = 'open'
-      ORDER BY ti.created_at DESC
-    `);
+  async getKds(station: MenuStation, history?: boolean): Promise<KdsItem[]> {
+    const res = history
+      ? await db.execute(sql`
+          SELECT
+            ti.id,
+            ti.tab_id AS "tabId",
+            ti.menu_item_id AS "menuItemId",
+            mi.name AS "menuItemName",
+            mi.station,
+            ti.qty,
+            ti.unit_price_paise AS "unitPricePaise",
+            ti.price_breakdown AS "priceBreakdown",
+            ti.status,
+            ti.void_reason AS "voidReason",
+            ti.added_by AS "addedBy",
+            ti.created_at AS "createdAt",
+            ti.updated_at AS "updatedAt",
+            bt.label AS "tableLabel",
+            t.guest_label AS "guestLabel",
+            ti.created_at AS "orderTime"
+          FROM tab_items ti
+          JOIN menu_items mi ON ti.menu_item_id = mi.id
+          JOIN tabs t ON ti.tab_id = t.id
+          LEFT JOIN bar_tables bt ON t.table_id = bt.id
+          WHERE mi.station = ${station}
+            AND ti.status = 'served'
+          ORDER BY ti.updated_at DESC
+          LIMIT 50
+        `)
+      : await db.execute(sql`
+          SELECT
+            ti.id,
+            ti.tab_id AS "tabId",
+            ti.menu_item_id AS "menuItemId",
+            mi.name AS "menuItemName",
+            mi.station,
+            ti.qty,
+            ti.unit_price_paise AS "unitPricePaise",
+            ti.price_breakdown AS "priceBreakdown",
+            ti.status,
+            ti.void_reason AS "voidReason",
+            ti.added_by AS "addedBy",
+            ti.created_at AS "createdAt",
+            ti.updated_at AS "updatedAt",
+            bt.label AS "tableLabel",
+            t.guest_label AS "guestLabel",
+            ti.created_at AS "orderTime"
+          FROM tab_items ti
+          JOIN menu_items mi ON ti.menu_item_id = mi.id
+          JOIN tabs t ON ti.tab_id = t.id
+          LEFT JOIN bar_tables bt ON t.table_id = bt.id
+          WHERE mi.station = ${station}
+            AND ti.status IN ('pending', 'preparing', 'ready')
+            AND t.status = 'open'
+          ORDER BY ti.created_at DESC
+        `);
 
     const rows = (res.rows as any[]) || [];
     return rows.map((r) => ({
@@ -674,6 +703,7 @@ export class BarService {
       voidReason: r.voidReason ?? undefined,
       addedBy: r.addedBy ?? undefined,
       createdAt: new Date(r.createdAt).toISOString(),
+      updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : undefined,
       tableLabel: r.tableLabel ?? undefined,
       guestLabel: r.guestLabel ?? undefined,
       orderTime: new Date(r.orderTime).toISOString(),

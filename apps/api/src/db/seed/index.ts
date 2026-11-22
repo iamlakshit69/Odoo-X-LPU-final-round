@@ -15,6 +15,7 @@ const SEED_MODULES_ORDER = [
   'bar',
   'invoices',
   'hr',
+  'enrichment',
 ];
 
 export async function runAllSeeds() {
