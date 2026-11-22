@@ -47,6 +47,19 @@ export async function seed() {
     { name: 'Matcha Green Tea Latte', category: 'drink', station: 'bar', pricePaise: 22000 },
     { name: 'Lemon Mint Sparkler', category: 'drink', station: 'bar', pricePaise: 16000 },
     { name: 'Kombucha Hibiscus Ginger', category: 'drink', station: 'bar', pricePaise: 22000 },
+    // Additional Gourmet Meals & Drinks
+    { name: 'Artisanal Truffle Mushroom Pizza', category: 'food', station: 'kitchen', pricePaise: 42000 },
+    { name: 'BBQ Pulled Chicken Sliders', category: 'food', station: 'kitchen', pricePaise: 34000 },
+    { name: 'Smashed Avocado & Feta Toast', category: 'food', station: 'kitchen', pricePaise: 29000 },
+    { name: 'Grilled Atlantic Salmon Quinoa Bowl', category: 'food', station: 'kitchen', pricePaise: 45000 },
+    { name: 'Crispy Peri-Peri Chicken Tacos', category: 'food', station: 'kitchen', pricePaise: 31000 },
+    { name: 'Acai Antioxidant Superbowl', category: 'food', station: 'kitchen', pricePaise: 27000 },
+    { name: 'Warm Belgian Chocolate Brownie', category: 'food', station: 'kitchen', pricePaise: 23000 },
+    { name: 'Cold Brew Nitro Coffee', category: 'drink', station: 'bar', pricePaise: 21000 },
+    { name: 'Corona Extra with Fresh Lime', category: 'drink', station: 'bar', pricePaise: 35000 },
+    { name: 'Bira 91 White Craft Beer', category: 'drink', station: 'bar', pricePaise: 32000 },
+    { name: 'Handcrafted Gin & Basil Smash', category: 'drink', station: 'bar', pricePaise: 44000 },
+    { name: 'Classic Tropical Mango Mojito', category: 'drink', station: 'bar', pricePaise: 26000 },
   ];
 
   const seededMenuItems = await db.insert(menuItems).values(menuData).returning();

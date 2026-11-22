@@ -149,8 +149,8 @@ export function FloatingIconRail({ currentPath, onNavigate }: FloatingIconRailPr
   });
 
   return (
-    <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-30 hidden md:block">
-      <div className="flex flex-col items-center gap-2 p-2 rounded-full border border-border bg-surface/90 backdrop-blur-md shadow-2xl">
+    <aside className="fixed left-3 lg:left-4 top-1/2 -translate-y-1/2 z-30 hidden md:block">
+      <div className="flex flex-col items-center gap-1.5 p-1.5 lg:p-2 max-h-[85vh] overflow-y-auto no-scrollbar rounded-full border border-border bg-surface/90 backdrop-blur-md shadow-2xl">
         {visibleItems.map((item) => {
           const isActive = currentPath === item.path || currentPath.startsWith(item.path);
 

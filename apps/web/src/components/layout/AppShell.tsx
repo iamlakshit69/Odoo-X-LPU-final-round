@@ -66,11 +66,13 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
       )}
 
       {/* Main Container */}
-      <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 ${
-        activeArea === 'admin' && isAuthenticated ? 'md:pl-20' : ''
-      }`}>
-        {children}
-      </main>
+      <div className={`flex-1 flex flex-col w-full ${activeArea === 'admin' && isAuthenticated ? 'md:pl-20 xl:pl-0' : ''}`}>
+        <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 ${
+          activeArea === 'admin' && isAuthenticated ? 'xl:pl-20' : ''
+        }`}>
+          {children}
+        </main>
+      </div>
 
       {/* ⌘K Command Palette Modal */}
       {commandOpen && (

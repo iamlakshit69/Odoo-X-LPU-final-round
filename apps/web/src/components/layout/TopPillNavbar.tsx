@@ -74,16 +74,16 @@ export function TopPillNavbar({
   }, [onOpenCommandPalette]);
 
   return (
-    <header className="sticky top-4 z-40 px-4 mb-6">
-      <div className="max-w-7xl mx-auto flex items-center justify-between p-2 rounded-full border border-border bg-surface/90 backdrop-blur-md shadow-lg transition-all duration-300">
+    <header className="sticky top-4 z-40 px-2 sm:px-4 mb-6">
+      <div className="max-w-7xl mx-auto flex items-center justify-between p-1.5 sm:p-2 rounded-full border border-border bg-surface/90 backdrop-blur-md shadow-lg transition-all duration-300">
         
         {/* Brand with morphing sport emblem */}
         <div
           onClick={() => onNavigateArea('public')}
-          className="flex items-center gap-2.5 px-3 py-1 cursor-pointer select-none group"
+          className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 cursor-pointer select-none group shrink-0"
         >
-          <div className="w-8 h-8 rounded-full bg-accent-orange flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-105">
-            <Sparkles className="w-4 h-4 animate-pulse" />
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-accent-orange flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-105">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
           </div>
           <div className="hidden sm:block">
             <span className="font-black text-sm tracking-tight text-primaryText">CHAMPIONS</span>
@@ -92,10 +92,10 @@ export function TopPillNavbar({
         </div>
 
         {/* Public / Portal / Staff Pill Switcher */}
-        <nav className="flex items-center p-1 rounded-full bg-canvas/80 border border-border/80">
+        <nav className="flex items-center p-0.5 sm:p-1 rounded-full bg-canvas/80 border border-border/80 shrink-0">
           <button
             onClick={() => onNavigateArea('public')}
-            className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
               activeArea === 'public'
                 ? 'bg-surface text-primaryText shadow-sm'
                 : 'text-mutedText hover:text-primaryText'
@@ -105,7 +105,7 @@ export function TopPillNavbar({
           </button>
           <button
             onClick={() => onNavigateArea('portal')}
-            className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
               activeArea === 'portal'
                 ? 'bg-surface text-primaryText shadow-sm'
                 : 'text-mutedText hover:text-primaryText'
@@ -115,7 +115,7 @@ export function TopPillNavbar({
           </button>
           <button
             onClick={() => onNavigateArea('admin')}
-            className={`px-3.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 ${
+            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
               activeArea === 'admin'
                 ? 'bg-surface text-primaryText shadow-sm'
                 : 'text-mutedText hover:text-primaryText'
@@ -126,7 +126,7 @@ export function TopPillNavbar({
         </nav>
 
         {/* Actions & Utilities */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* ⌘K Omnibox Button */}
           <button
             onClick={onOpenCommandPalette}
@@ -223,7 +223,7 @@ export function TopPillNavbar({
 
           {/* User Pill / Login state */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full border border-border bg-canvas/80 shadow-inner">
+            <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full border border-border bg-canvas/80 shadow-inner shrink-0">
               <div className="w-6 h-6 rounded-full bg-accent-orange/20 text-accent-orange flex items-center justify-center text-xs font-bold uppercase">
                 {user.name?.charAt(0) || 'U'}
               </div>
@@ -246,7 +246,7 @@ export function TopPillNavbar({
           ) : (
             <button
               onClick={() => onNavigateArea('admin')}
-              className="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-accent-orange text-white hover:bg-accent-orange/90 transition-colors shadow-md"
+              className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-accent-orange text-white hover:bg-accent-orange/90 transition-colors shadow-md shrink-0"
             >
               Log in
             </button>

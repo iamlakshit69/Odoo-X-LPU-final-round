@@ -12,7 +12,7 @@ import { courtTypes, courts, bookings, socialSessions, socialSignups } from '../
 import { members } from '../schema/members.js';
 import { clubLocalToday, localToUtc, addClubDays, toClubLocalWeekday } from '../../core/clubTime.js';
 
-export async function seedCourts() {
+export async function seed() {
   console.log('[Seed:courts] Starting courts and bookings seed...');
 
   // 1. Seed Court Types
@@ -39,16 +39,20 @@ export async function seedCourts() {
   const allTypes = await db.select().from(courtTypes);
   const typeMap = new Map(allTypes.map((t) => [t.code, t.id]));
 
-  // 2. Seed 8 Courts: tennis x3, padel x2, badminton x2, cricket nets x1
+  // 2. Seed 12 Courts: Tennis x4, Padel x3, Badminton x3, Cricket Nets x2
   const courtDefs = [
-    { typeCode: 'tennis',    name: 'Centre Court (Tennis 1)', sortOrder: 1 },
-    { typeCode: 'tennis',    name: 'Court 2 (Tennis 2)',      sortOrder: 2 },
-    { typeCode: 'tennis',    name: 'Court 3 (Tennis 3)',      sortOrder: 3 },
-    { typeCode: 'padel',     name: 'Padel Court 1',           sortOrder: 4 },
-    { typeCode: 'padel',     name: 'Padel Court 2',           sortOrder: 5 },
-    { typeCode: 'badminton', name: 'Badminton Court 1',       sortOrder: 6 },
-    { typeCode: 'badminton', name: 'Badminton Court 2',       sortOrder: 7 },
-    { typeCode: 'cricket',   name: 'Cricket Net 1',           sortOrder: 8 },
+    { typeCode: 'tennis',    name: 'Centre Court (Tennis 1)',         sortOrder: 1 },
+    { typeCode: 'tennis',    name: 'Court 2 (Clay Court)',            sortOrder: 2 },
+    { typeCode: 'tennis',    name: 'Court 3 (Synthetic Hard)',        sortOrder: 3 },
+    { typeCode: 'tennis',    name: 'Court 4 (Grass Court)',           sortOrder: 4 },
+    { typeCode: 'padel',     name: 'Padel Court 1 (Panoramic Glass)', sortOrder: 5 },
+    { typeCode: 'padel',     name: 'Padel Court 2 (Championship)',    sortOrder: 6 },
+    { typeCode: 'padel',     name: 'Padel Court 3 (Club Court)',      sortOrder: 7 },
+    { typeCode: 'badminton', name: 'Badminton Court 1 (BWF Wooden)',  sortOrder: 8 },
+    { typeCode: 'badminton', name: 'Badminton Court 2 (Pro Mat)',     sortOrder: 9 },
+    { typeCode: 'badminton', name: 'Badminton Court 3 (Club Mat)',    sortOrder: 10 },
+    { typeCode: 'cricket',   name: 'Cricket Net 1 (Bowling Machine)', sortOrder: 11 },
+    { typeCode: 'cricket',   name: 'Cricket Net 2 (Turf Practice)',   sortOrder: 12 },
   ];
 
   for (const c of courtDefs) {
@@ -314,3 +318,5 @@ export async function seedCourts() {
 
   console.log('[Seed:courts] Completed courts and bookings seed.');
 }
+
+export const seedCourts = seed;

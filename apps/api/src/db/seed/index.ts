@@ -35,6 +35,8 @@ export async function runAllSeeds() {
       const imported = await import(pathToFileURL(filePath).href);
       if (typeof imported.seed === 'function') {
         await imported.seed();
+      } else if (typeof imported.seedCourts === 'function') {
+        await imported.seedCourts();
       } else if (typeof imported.default === 'function') {
         await imported.default();
       }
