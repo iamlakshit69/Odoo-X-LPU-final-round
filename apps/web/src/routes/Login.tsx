@@ -4,6 +4,7 @@ import { Shield, Lock, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface LoginProps {
   onSuccess?: (role: string | null) => void;
+  onNavigatePublic?: () => void;
 }
 
 const DEMO_ROLES = [
@@ -19,7 +20,7 @@ const DEMO_ROLES = [
   { role: 'Member', email: 'member@championsclub.in', label: 'Aarav Sharma', color: 'from-lime-500 to-green-500' },
 ];
 
-export function Login({ onSuccess }: LoginProps) {
+export function Login({ onSuccess, onNavigatePublic }: LoginProps) {
   const { login, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('demo1234');
@@ -141,6 +142,18 @@ export function Login({ onSuccess }: LoginProps) {
             )}
           </button>
         </form>
+
+        {onNavigatePublic && (
+          <div className="pt-2 text-center border-t border-border/60">
+            <button
+              type="button"
+              onClick={onNavigatePublic}
+              className="text-xs text-mutedText hover:text-accent-orange font-semibold transition-colors"
+            >
+              Looking for public showcase? Explore Sports & Memberships →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

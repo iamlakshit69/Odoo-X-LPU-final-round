@@ -30,6 +30,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { showToast, showError } = useToast();
 
   const refreshMe = useCallback(async () => {
+    // Only auto-restore user if session was started in this browser session
+    const hasActiveSession = sessionStorage.getItem('cc_active_session') === 'true';
+    if (!hasActiveSession) {
+      setUser(null);
+      setRole(null);
+      setPermissions([]);
+      setMemberId(null);
+      setActivePlan(null);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const data = await api.auth.me();
       setUser(data.user);
@@ -43,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setPermissions([]);
       setMemberId(null);
       setActivePlan(null);
+      sessionStorage.removeItem('cc_active_session');
     } finally {
       setIsLoading(false);
     }
@@ -76,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       await api.auth.login(credentials);
       const data = await api.auth.me();
+      sessionStorage.setItem('cc_active_session', 'true');
       setUser(data.user);
       setRole(data.role);
       setPermissions(data.permissions || []);
@@ -93,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      sessionStorage.removeItem('cc_active_session');
       await api.auth.logout();
       setUser(null);
       setRole(null);

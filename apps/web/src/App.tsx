@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './auth/AuthContext';
 import { useSSE } from './hooks/useSSE';
 import { AppShell } from './components/layout/AppShell';
 import { ShieldAlert } from 'lucide-react';
+import { getHomePathForRole } from './lib/utils';
 
 // Routes
 import { PublicHome } from './routes/public/PublicHome';
@@ -82,8 +83,30 @@ function MainRouter() {
   };
 
   const renderCurrentScreen = () => {
-    if (currentPath === '/login') {
-      return <Login onSuccess={(role) => navigate(role === 'member' ? '/portal' : '/admin/courts')} />;
+    // 0. Login & Entry Routing: Unauthenticated users visiting '/' or '/login' see the Login screen
+    if (currentPath === '/login' || (!isAuthenticated && currentPath === '/')) {
+      return (
+        <Login
+          onSuccess={(role) => navigate(getHomePathForRole(role))}
+          onNavigatePublic={() => navigate('/public')}
+        />
+      );
+    }
+
+    // Authenticated users visiting '/' are sent straight to their role workspace
+    if (isAuthenticated && currentPath === '/') {
+      navigate(getHomePathForRole(role));
+      return null;
+    }
+
+    // Public Club Showcase
+    if (currentPath === '/public') {
+      return (
+        <PublicHome
+          onNavigateStaff={() => navigate(isAuthenticated ? getHomePathForRole(role) : '/login')}
+          onNavigatePortal={() => navigate(isAuthenticated && role === 'member' ? '/portal' : '/login')}
+        />
+      );
     }
 
     // 1. Unauthenticated users cannot access /admin or /portal
@@ -114,14 +137,14 @@ function MainRouter() {
 
     if (currentPath === '/admin/courts') {
       if (!checkAccess('booking:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/portal')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <CourtsGrid />;
     }
 
     if (currentPath === '/admin/desk') {
       if (!checkAccess('member:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return (
         <FrontDesk
@@ -132,56 +155,56 @@ function MainRouter() {
 
     if (currentPath === '/admin/members/new') {
       if (!checkAccess('member:create')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <NewMember onDone={() => navigate('/admin/desk')} />;
     }
 
     if (currentPath === '/admin/shop/pos' || currentPath === '/admin/shop') {
       if (!checkAccess('order:create')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <ShopPos />;
     }
 
     if (currentPath === '/admin/shop/orders') {
       if (!checkAccess('order:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <ShopOrders />;
     }
 
     if (currentPath === '/admin/shop/stock') {
       if (!checkAccess('stock:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <ShopStock />;
     }
 
     if (currentPath === '/admin/bar') {
       if (!checkAccess('tab:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <BarConsole />;
     }
 
     if (currentPath === '/admin/kds/kitchen') {
       if (!checkAccess('kds:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <KdsScreen initialStation="kitchen" />;
     }
 
     if (currentPath === '/admin/kds/bar') {
       if (!checkAccess('kds:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <KdsScreen initialStation="bar" />;
     }
 
     if (currentPath === '/admin/crm') {
       if (!checkAccess('lead:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return (
         <CrmBoard
@@ -192,35 +215,35 @@ function MainRouter() {
 
     if (currentPath === '/admin/dashboard') {
       if (!checkAccess('finance:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <Dashboard />;
     }
 
     if (currentPath === '/admin/finance/invoices' || currentPath === '/admin/finance') {
       if (!checkAccess('invoice:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <Invoices />;
     }
 
     if (currentPath === '/admin/finance/expenses') {
       if (!checkAccess('expense:manage')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <Expenses />;
     }
 
     if (currentPath === '/admin/hr') {
       if (!checkAccess('hr:read')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <HrManagement />;
     }
 
     if (currentPath === '/admin/settings') {
       if (!checkAccess('settings:manage')) {
-        return <AccessDenied role={role} onBack={() => navigate('/admin/courts')} />;
+        return <AccessDenied role={role} onBack={() => navigate(getHomePathForRole(role))} />;
       }
       return <SettingsView />;
     }
@@ -228,8 +251,8 @@ function MainRouter() {
     // Default to Public Landing
     return (
       <PublicHome
-        onNavigateStaff={() => navigate('/admin/courts')}
-        onNavigatePortal={() => navigate('/portal')}
+        onNavigateStaff={() => navigate(isAuthenticated ? getHomePathForRole(role) : '/login')}
+        onNavigatePortal={() => navigate(isAuthenticated && role === 'member' ? '/portal' : '/login')}
       />
     );
   };

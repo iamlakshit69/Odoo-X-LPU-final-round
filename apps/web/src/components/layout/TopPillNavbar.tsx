@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext';
+import { getHomePathForRole } from '../../lib/utils';
 
 interface TopPillNavbarProps {
   currentPath?: string;
@@ -153,8 +154,8 @@ export function TopPillNavbar({
 
   if (!isAuthenticated) {
     primaryLinks = [
-      { id: 'home', label: 'Club Home', path: '/' },
-      { id: 'login', label: 'Member & Staff Login', path: '/login' },
+      { id: 'login', label: 'Sign In (Dev Roles)', path: '/login' },
+      { id: 'public', label: 'Club Showcase', path: '/public' },
     ];
   } else if (role === 'member') {
     primaryLinks = [
@@ -163,7 +164,7 @@ export function TopPillNavbar({
       { id: 'bookings', label: 'My Bookings', path: '/portal#bookings' },
       { id: 'shop', label: 'Pro Shop', path: '/portal#shop' },
       { id: 'invoices', label: 'Invoices', path: '/portal#invoices' },
-      { id: 'public', label: 'Club Spotlight', path: '/' },
+      { id: 'public', label: 'Club Showcase', path: '/public' },
     ];
   } else if (role === 'owner' || role === 'manager') {
     // Owner has core management shortcuts upfront + clean overflow dropdown
@@ -185,7 +186,7 @@ export function TopPillNavbar({
       { id: 'expenses', label: 'Finance Expenses', path: '/admin/finance/expenses', icon: <Wallet className="w-4 h-4 text-green-500" /> },
       { id: 'settings', label: 'Club Settings & RBAC', path: '/admin/settings', icon: <Settings className="w-4 h-4 text-mutedText" /> },
       { id: 'portal-preview', label: 'Member Portal View', path: '/portal', icon: <UserCircle className="w-4 h-4 text-lime-500" /> },
-      { id: 'public-home', label: 'Public Website View', path: '/', icon: <Sparkles className="w-4 h-4 text-accent-orange" /> },
+      { id: 'public-home', label: 'Public Website View', path: '/public', icon: <Sparkles className="w-4 h-4 text-accent-orange" /> },
     ];
   } else if (role === 'hr') {
     // HR Officer strictly sees HR operations and staff timetable
@@ -240,7 +241,7 @@ export function TopPillNavbar({
         
         {/* Brand with morphing sport emblem */}
         <div
-          onClick={() => handleNavClick(isAuthenticated && role === 'member' ? '/portal' : (isAuthenticated ? '/admin/courts' : '/'))}
+          onClick={() => handleNavClick(isAuthenticated ? getHomePathForRole(role) : '/login')}
           className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 cursor-pointer select-none group shrink-0"
         >
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-accent-orange flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-105">
@@ -253,31 +254,37 @@ export function TopPillNavbar({
         </div>
 
         {/* Dynamic Role-Based Navigation Pill */}
-        <nav className="flex items-center p-0.5 sm:p-1 rounded-full bg-canvas/80 border border-border/80 max-w-[62vw] lg:max-w-none overflow-x-auto no-scrollbar shrink">
-          {primaryLinks.map((link) => {
-            const active = isLinkActive(link.path);
-            return (
-              <button
-                key={link.id}
-                onClick={() => handleNavClick(link.path)}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
-                  active
-                    ? 'bg-accent-orange text-white shadow-sm shadow-accent-orange/20 font-bold'
-                    : 'text-mutedText hover:text-primaryText hover:bg-surface/60'
-                }`}
-              >
-                {link.icon}
-                <span>{link.label}</span>
-              </button>
-            );
-          })}
+        <nav className="flex items-center p-0.5 sm:p-1 rounded-full bg-canvas/80 border border-border/80 max-w-[62vw] lg:max-w-none shrink relative z-40">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+            {primaryLinks.map((link) => {
+              const active = isLinkActive(link.path);
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => handleNavClick(link.path)}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    active
+                      ? 'bg-accent-orange text-white shadow-sm shadow-accent-orange/20 font-bold'
+                      : 'text-mutedText hover:text-primaryText hover:bg-surface/60'
+                  }`}
+                >
+                  {link.icon}
+                  <span>{link.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* More Dropdown for Owner / Manager */}
           {overflowLinks.length > 0 && (
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative shrink-0 ml-1" ref={dropdownRef}>
               <button
-                onClick={() => setMoreOpen((prev) => !prev)}
-                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMoreOpen((prev) => !prev);
+                }}
+                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer select-none ${
                   isOverflowActive
                     ? 'bg-accent-orange text-white shadow-sm font-bold'
                     : 'text-mutedText hover:text-primaryText hover:bg-surface/60'
@@ -288,18 +295,22 @@ export function TopPillNavbar({
               </button>
 
               {moreOpen && (
-                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 rounded-2xl border border-border bg-surface p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 space-y-1">
-                  <div className="px-2 py-1 text-[10px] font-bold text-mutedText uppercase tracking-wider border-b border-border/60 mb-1">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 sm:w-64 rounded-2xl border border-border bg-surface p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 space-y-1"
+                >
+                  <div className="px-2.5 py-1 text-[10px] font-bold text-mutedText uppercase tracking-wider border-b border-border/60 mb-1">
                     Club Operations Suite
                   </div>
-                  <div className="max-h-72 overflow-y-auto no-scrollbar space-y-0.5">
+                  <div className="max-h-80 overflow-y-auto no-scrollbar space-y-0.5">
                     {overflowLinks.map((item) => {
                       const active = isLinkActive(item.path);
                       return (
                         <button
                           key={item.id}
+                          type="button"
                           onClick={() => handleNavClick(item.path)}
-                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
                             active
                               ? 'bg-accent-orange/15 text-accent-orange font-bold'
                               : 'text-primaryText hover:bg-canvas'
@@ -456,7 +467,7 @@ export function TopPillNavbar({
                       </button>
                     )}
                     <button
-                      onClick={() => handleNavClick('/')}
+                      onClick={() => handleNavClick('/public')}
                       className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-canvas text-primaryText text-left transition-colors"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-accent-orange" />

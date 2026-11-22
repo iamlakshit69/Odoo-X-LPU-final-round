@@ -48,3 +48,28 @@ export function getTodayDateString(): string {
   const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+export function getHomePathForRole(role?: string | null): string {
+  switch (role) {
+    case 'owner':
+    case 'manager':
+      return '/admin/dashboard';
+    case 'hr':
+      return '/admin/hr';
+    case 'finance':
+      return '/admin/finance/invoices';
+    case 'front_desk':
+      return '/admin/desk';
+    case 'shop_clerk':
+    case 'cashier':
+      return '/admin/shop/pos';
+    case 'bartender':
+      return '/admin/bar';
+    case 'kitchen':
+      return '/admin/kds/kitchen';
+    case 'member':
+      return '/portal';
+    default:
+      return '/admin/courts';
+  }
+}
