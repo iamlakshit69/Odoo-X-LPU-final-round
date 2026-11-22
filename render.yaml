@@ -3,7 +3,7 @@ services:
     name: champions-club
     env: node
     plan: free
-    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    buildCommand: pnpm install --frozen-lockfile --prod=false && pnpm build
     startCommand: pnpm db:deploy && pnpm start
     healthCheckPath: /health
     envVars:
