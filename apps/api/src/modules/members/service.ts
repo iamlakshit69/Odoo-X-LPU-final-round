@@ -337,7 +337,7 @@ export class MembersService {
     }
 
     // 5b. Create portal login user if email + password provided
-    if (input.email && (input as any).password) {
+    if (input.email && input.password) {
       const [memberRole] = await db
         .select({ id: roles.id })
         .from(roles)
@@ -345,7 +345,7 @@ export class MembersService {
         .limit(1);
 
       if (memberRole) {
-        const passwordHash = await hashPassword((input as any).password);
+        const passwordHash = await hashPassword(input.password);
         await db
           .insert(users)
           .values({

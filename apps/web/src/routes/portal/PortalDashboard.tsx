@@ -324,14 +324,16 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
 
                     <div className="flex items-center gap-3">
                       <MoneyText paise={b.pricePaise} className="font-bold text-sm text-primaryText" />
-                      <button
-                        disabled={cancelMutation.isPending}
-                        onClick={() => cancelMutation.mutate(b.id)}
-                        className="px-3 py-1.5 rounded-xl border border-red-500/40 text-red-500 hover:bg-red-500/10 font-semibold text-xs transition-colors flex items-center gap-1"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        <span>Cancel</span>
-                      </button>
+                      {(b.status === 'confirmed' || b.status === 'held') && (
+                        <button
+                          disabled={cancelMutation.isPending}
+                          onClick={() => cancelMutation.mutate(b.id)}
+                          className="px-3 py-1.5 rounded-xl border border-red-500/40 text-red-500 hover:bg-red-500/10 font-semibold text-xs transition-colors flex items-center gap-1"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          <span>Cancel</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -378,43 +380,98 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
           {isBookingsLoading ? (
             <LoadingState message="Fetching member bookings..." />
           ) : (bookingsData?.items || []).length > 0 ? (
-            <div className="space-y-3">
-              {(bookingsData?.items || []).map((b) => (
-                <div
-                  key={b.id}
-                  className="p-4 rounded-2xl border border-border bg-canvas flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-primaryText">
-                        {b.courtName || 'Court Session'}
-                      </span>
-                      <StatusBadge status={b.status} />
-                    </div>
-                    <div className="flex items-center gap-2 text-mutedText font-mono">
-                      <Clock className="w-3.5 h-3.5 text-accent-orange" />
-                      <span>
-                        {formatDate(b.startAt)} at {formatTime(b.startAt)} – {formatTime(b.endAt)}
-                      </span>
-                    </div>
+            (() => {
+              const all = bookingsData?.items || [];
+              const now = new Date();
+              const upcoming = all.filter((b) => new Date(b.endAt) >= now && b.status !== 'cancelled');
+              const past = all.filter((b) => new Date(b.endAt) < now || b.status === 'cancelled');
+
+              return (
+                <div className="space-y-6">
+                  {/* Upcoming Bookings */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-accent-orange">Upcoming Reservations</h4>
+                    {upcoming.length > 0 ? (
+                      <div className="space-y-2">
+                        {upcoming.map((b) => (
+                          <div
+                            key={b.id}
+                            className="p-4 rounded-2xl border border-border bg-canvas flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-sm text-primaryText">
+                                  {b.courtName || 'Court Session'}
+                                </span>
+                                <StatusBadge status={b.status} />
+                              </div>
+                              <div className="flex items-center gap-2 text-mutedText font-mono">
+                                <Clock className="w-3.5 h-3.5 text-accent-orange" />
+                                <span>
+                                  {formatDate(b.startAt)} at {formatTime(b.startAt)} – {formatTime(b.endAt)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <MoneyText paise={b.pricePaise} className="font-bold text-sm text-primaryText" />
+                              {b.status === 'confirmed' || b.status === 'held' ? (
+                                <button
+                                  disabled={cancelMutation.isPending}
+                                  onClick={() => cancelMutation.mutate(b.id)}
+                                  className="px-3 py-1.5 rounded-xl border border-red-500/40 text-red-500 hover:bg-red-500/10 font-semibold text-xs transition-colors flex items-center gap-1"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  <span>Cancel Booking</span>
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-mutedText italic p-3 rounded-xl bg-canvas border border-border/50">
+                        No upcoming court sessions booked.
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <MoneyText paise={b.pricePaise} className="font-bold text-sm text-primaryText" />
-                    {b.status === 'confirmed' || b.status === 'held' ? (
-                      <button
-                        disabled={cancelMutation.isPending}
-                        onClick={() => cancelMutation.mutate(b.id)}
-                        className="px-3 py-1.5 rounded-xl border border-red-500/40 text-red-500 hover:bg-red-500/10 font-semibold text-xs transition-colors flex items-center gap-1"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        <span>Cancel Booking</span>
-                      </button>
-                    ) : null}
-                  </div>
+                  {/* Past Bookings */}
+                  {past.length > 0 && (
+                    <div className="space-y-3 pt-2 border-t border-border/60">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-mutedText">Past & Cancelled Sessions</h4>
+                      <div className="space-y-2">
+                        {past.map((b) => (
+                          <div
+                            key={b.id}
+                            className="p-4 rounded-2xl border border-border/50 bg-canvas/60 opacity-80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm text-primaryText">
+                                  {b.courtName || 'Court Session'}
+                                </span>
+                                <StatusBadge status={b.status} />
+                              </div>
+                              <div className="flex items-center gap-2 text-mutedText font-mono text-[11px]">
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>
+                                  {formatDate(b.startAt)} at {formatTime(b.startAt)} – {formatTime(b.endAt)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <MoneyText paise={b.pricePaise} className="font-medium text-xs text-mutedText" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })()
           ) : (
             <EmptyState
               title="No Bookings Found"
@@ -467,6 +524,12 @@ function PortalCourtBooking({
   const { data: availabilityData, isLoading, refetch } = useQuery({
     queryKey: ['public-availability', date],
     queryFn: () => api.courts.getPublicAvailability(date),
+  });
+
+  // Fetch Court Types dynamically for accurate base prices
+  const { data: courtTypes = [] } = useQuery({
+    queryKey: ['court-types'],
+    queryFn: () => api.courts.listCourtTypes(),
   });
 
   // Fetch quote when slot is selected
@@ -565,12 +628,17 @@ function PortalCourtBooking({
                       }`}
                       onClick={() => {
                         if (isBookable) {
+                          const matchingType = courtTypes.find(
+                            (t) => t.code === c.court.courtTypeCode || t.id === (c.court as any).courtTypeId
+                          );
+                          const basePaise = matchingType?.basePricePerHourPaise ?? 150000;
+
                           setSelectedSlot({
                             courtId: c.court.id,
                             courtName: c.court.name,
                             courtTypeCode: c.court.courtTypeCode || 'tennis',
                             startAt: s.startAt,
-                            basePricePaise: 150000,
+                            basePricePaise: basePaise,
                           });
                         }
                       }}
@@ -679,6 +747,7 @@ function PortalCourtBooking({
 
 // Subcomponent: Member Pro Shop Ordering
 function PortalShopOrdering({ memberId }: { memberId?: string | null }) {
+  const { activePlan } = useAuth();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
 
@@ -747,10 +816,20 @@ function PortalShopOrdering({ memberId }: { memberId?: string | null }) {
       {/* Product Grid */}
       <div className="lg:col-span-2 space-y-4">
         <div className="p-6 rounded-[28px] border border-border bg-surface shadow-sm">
-          <h3 className="text-base font-bold text-primaryText mb-1">Pro Shop Equipment & Gear</h3>
-          <p className="text-xs text-mutedText">
-            Member discounts applied automatically by server pricing engine.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-base font-bold text-primaryText mb-1">Pro Shop Equipment & Gear</h3>
+              <p className="text-xs text-mutedText">
+                Member discounts applied automatically by server pricing engine.
+              </p>
+            </div>
+            {activePlan && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-orange/15 border border-accent-orange/30 text-accent-orange text-xs font-bold uppercase tracking-wide">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{activePlan} Tier Discount Active</span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -834,17 +913,34 @@ function PortalShopOrdering({ memberId }: { memberId?: string | null }) {
                       {item.variant.optionLabel} x {item.qty}
                     </span>
                   </div>
-                  <button
-                    onClick={() => removeFromCart(item.variant.id)}
-                    className="p-1 rounded-lg text-red-500 hover:bg-red-500/10"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <MoneyText
+                      paise={(item.variant.pricePaise || item.product.basePricePaise || 0) * item.qty}
+                      className="font-mono font-semibold text-primaryText text-xs"
+                    />
+                    <button
+                      onClick={() => removeFromCart(item.variant.id)}
+                      className="p-1 rounded-lg text-red-500 hover:bg-red-500/10"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Fulfilment Choice */}
+            <div className="pt-2 border-t border-border/80 flex items-center justify-between text-xs font-bold">
+              <span className="text-mutedText">Estimated Subtotal:</span>
+              <MoneyText
+                paise={cart.reduce(
+                  (sum, i) => sum + (i.variant.pricePaise || i.product.basePricePaise || 0) * i.qty,
+                  0
+                )}
+                className="text-primaryText font-mono text-sm"
+              />
+            </div>
+
             <div className="space-y-2 pt-2 border-t border-border/60">
               <label className="text-[10px] text-mutedText block font-bold uppercase">
                 Fulfillment Mode
@@ -1014,10 +1110,10 @@ function PortalInvoices({ memberId }: { memberId?: string | null }) {
 
             <div className="flex justify-end gap-2 pt-2 border-t border-border">
               <button
-                onClick={() => window.print()}
+                onClick={() => window.open(`/api/invoices/${selectedInvoice.id}/pdf`, '_blank')}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-canvas border border-border text-primaryText hover:bg-surface"
               >
-                <Printer className="w-3.5 h-3.5" /> Print
+                <Printer className="w-3.5 h-3.5" /> Print Invoice
               </button>
             </div>
           </div>

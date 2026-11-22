@@ -83,7 +83,7 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
         notes: notes.trim() ? notes.trim() : undefined,
         planCode: selectedPlan.code as PlanCode,
         ...(password.trim() && email.trim() ? { password: password.trim() } : {}),
-      } as any);
+      });
     },
     onSuccess: (data) => {
       setCreatedData({
@@ -218,10 +218,13 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
                   className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-canvas text-xs text-primaryText focus:ring-1 focus:ring-accent-orange focus:outline-none"
                 />
               </div>
-              {password && !email && (
+              {password && password.length < 6 && (
+                <p className="text-[10px] text-red-500 mt-0.5">Password must be at least 6 characters.</p>
+              )}
+              {password && password.length >= 6 && !email && (
                 <p className="text-[10px] text-amber-500 mt-0.5">⚠ Email is required to enable portal login.</p>
               )}
-              {password && email && (
+              {password && password.length >= 6 && email && (
                 <p className="text-[10px] text-emerald-500 mt-0.5">✓ Member can log into self-service portal with this email & password.</p>
               )}
             </div>
@@ -257,7 +260,7 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
           <div className="flex justify-end pt-3 border-t border-border">
             <button
               type="button"
-              disabled={!fullName.trim() || !phone.trim()}
+              disabled={!fullName.trim() || !phone.trim() || (password.length > 0 && password.length < 6)}
               onClick={() => setStep(2)}
               className="px-6 py-2.5 rounded-xl bg-accent-orange hover:bg-accent-orange/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-md"
             >

@@ -44,8 +44,8 @@ export function BarConsole() {
 
   // Till state
   const [tillModalOpen, setTillModalOpen] = useState(false);
-  const [openingFloat, setOpeningFloat] = useState<number>(500000); // 5000 INR
-  const [countedCash, setCountedCash] = useState<number>(500000);
+  const [openingFloat, setOpeningFloat] = useState<number>(5000); // in Rupees (₹5,000)
+  const [countedCash, setCountedCash] = useState<number>(5000);
   const [tillVariance, setTillVariance] = useState<number | null>(null);
 
   // Z-Report state
@@ -169,7 +169,7 @@ export function BarConsole() {
 
   // Open till mutation
   const openTillMutation = useMutation({
-    mutationFn: () => api.bar.openTill({ openingFloatPaise: openingFloat }),
+    mutationFn: () => api.bar.openTill({ openingFloatPaise: Math.round(openingFloat * 100) }),
     onSuccess: () => {
       showToast('success', 'Till Opened', 'Daily cash drawer session initialized.');
       setTillModalOpen(false);
@@ -182,7 +182,7 @@ export function BarConsole() {
     mutationFn: () =>
       api.bar.closeTill({
         tillSessionId: 'latest', // handled by backend
-        countedCashPaise: countedCash,
+        countedCashPaise: Math.round(countedCash * 100),
       }),
     onSuccess: (session) => {
       setTillVariance(session.variancePaise ?? 0);
@@ -635,13 +635,13 @@ export function BarConsole() {
 
             {/* Open Till Section */}
             <div className="p-4 rounded-xl bg-canvas border border-border space-y-2">
-              <span className="text-xs font-bold text-primaryText block">Start Shift: Open Till</span>
+              <span className="text-xs font-bold text-primaryText block">Start Shift: Open Till (₹)</span>
               <div className="flex gap-2">
                 <input
                   type="number"
                   value={openingFloat}
                   onChange={(e) => setOpeningFloat(Number(e.target.value))}
-                  placeholder="Opening Float (Paise)"
+                  placeholder="Opening Float (₹)"
                   className="w-full px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-mono"
                 />
                 <button
@@ -657,13 +657,13 @@ export function BarConsole() {
 
             {/* Close Till & Variance Section */}
             <div className="p-4 rounded-xl bg-canvas border border-border space-y-2">
-              <span className="text-xs font-bold text-primaryText block">End Shift: Close Till</span>
+              <span className="text-xs font-bold text-primaryText block">End Shift: Close Till (₹)</span>
               <div className="flex gap-2">
                 <input
                   type="number"
                   value={countedCash}
                   onChange={(e) => setCountedCash(Number(e.target.value))}
-                  placeholder="Counted Cash (Paise)"
+                  placeholder="Counted Cash (₹)"
                   className="w-full px-3 py-1.5 rounded-lg border border-border bg-surface text-xs font-mono"
                 />
                 <button

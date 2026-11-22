@@ -50,6 +50,7 @@ export function HrManagement() {
   const [showDecideModal, setShowDecideModal] = useState(false);
   const [decideRequestId, setDecideRequestId] = useState('');
   const [decideNote, setDecideNote] = useState('');
+  const [selectedLeaveReq, setSelectedLeaveReq] = useState<any | null>(null);
 
   // Payroll run
   const [payrollMonth, setPayrollMonth] = useState(() => {
@@ -653,6 +654,7 @@ export function HrManagement() {
                                 <button
                                   disabled={decideLeaveMutation.isPending}
                                   onClick={() => {
+                                    setSelectedLeaveReq(req);
                                     setDecideRequestId(req.id);
                                     setShowDecideModal(true);
                                   }}
@@ -860,14 +862,32 @@ export function HrManagement() {
             </p>
 
             <div className="space-y-3">
+              {selectedLeaveReq && (
+                <div className="p-3 rounded-xl bg-canvas border border-border space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-xs text-primaryText">{selectedLeaveReq.staffName || 'Staff Member'}</span>
+                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-surface border border-border text-accent-orange">
+                      {selectedLeaveReq.leaveType} ({selectedLeaveReq.daysCount} days)
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-mutedText font-mono">
+                    {selectedLeaveReq.startDate} to {selectedLeaveReq.endDate}
+                  </div>
+                  {selectedLeaveReq.reason && (
+                    <div className="text-[11px] text-mutedText italic mt-1">
+                      "{selectedLeaveReq.reason}"
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="text-[10px] text-mutedText block mb-1">Leave Request ID</label>
                 <input
                   type="text"
+                  readOnly
                   value={decideRequestId}
-                  onChange={(e) => setDecideRequestId(e.target.value)}
-                  placeholder="UUID of leave request"
-                  className="w-full p-2.5 text-xs rounded-xl bg-canvas border border-border text-primaryText font-mono"
+                  className="w-full p-2.5 text-xs rounded-xl bg-canvas/60 border border-border text-mutedText font-mono cursor-not-allowed"
                 />
               </div>
 

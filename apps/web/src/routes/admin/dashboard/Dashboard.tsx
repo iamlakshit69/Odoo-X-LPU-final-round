@@ -30,12 +30,14 @@ import { api } from '../../../api/client';
 import { LoadingState, EmptyState, ErrorState } from '../../../components/shared/States';
 import { MoneyText } from '../../../components/shared/MoneyText';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
+import { useToast } from '../../../lib/toast';
 
 type RangeOption = 'today' | 'week' | 'month' | 'custom';
 
 const COLORS = ['#F97316', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'];
 
 export function Dashboard() {
+  const { showToast, showError } = useToast();
   const [range, setRange] = useState<RangeOption>('month');
 
   // Dates in club-local YYYY-MM-DD
@@ -108,7 +110,17 @@ export function Dashboard() {
   });
 
   const handleExportCsv = () => {
-    window.open(`/api/finance/export?from=${from}&to=${to}`, '_blank');
+    try {
+      const url = `/api/finance/export?from=${from}&to=${to}`;
+      const win = window.open(url, '_blank');
+      if (!win) {
+        showToast('warning', 'Pop-up Blocked', 'Please allow pop-ups to download the CSV report.');
+      } else {
+        showToast('info', 'Export Started', 'Financial ledger CSV report downloading.');
+      }
+    } catch (err: any) {
+      showError(err, 'Failed to export CSV');
+    }
   };
 
   if (isSummaryLoading && !summary) {

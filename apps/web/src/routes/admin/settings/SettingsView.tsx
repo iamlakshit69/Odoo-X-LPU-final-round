@@ -841,25 +841,31 @@ function CrmStagesSettings() {
       </div>
 
       <div className="space-y-2 pt-2 max-w-md">
-        {stages.map((stg, i) => (
-          <div
-            key={stg}
-            className="flex items-center justify-between p-3 rounded-2xl bg-canvas border border-border text-xs"
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-surface border border-border flex items-center justify-center font-bold text-[10px] text-mutedText">
-                {i + 1}
-              </span>
-              <span className="font-bold text-primaryText capitalize">{stg.replace('_', ' ')}</span>
-            </div>
-            <button
-              onClick={() => handleRemove(stg)}
-              className="p-1 rounded-lg text-red-500 hover:bg-red-500/10"
+        {stages.length === 0 ? (
+          <p className="text-xs text-mutedText italic p-3 rounded-xl bg-canvas border border-dashed border-border">
+            No pipeline stages defined. Add a stage above (e.g. 'new', 'trial_booked', 'won').
+          </p>
+        ) : (
+          stages.map((stg, i) => (
+            <div
+              key={stg}
+              className="flex items-center justify-between p-3 rounded-2xl bg-canvas border border-border text-xs"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        ))}
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-surface border border-border flex items-center justify-center font-bold text-[10px] text-mutedText">
+                  {i + 1}
+                </span>
+                <span className="font-bold text-primaryText capitalize">{stg.replace('_', ' ')}</span>
+              </div>
+              <button
+                onClick={() => handleRemove(stg)}
+                className="p-1 rounded-lg text-red-500 hover:bg-red-500/10"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

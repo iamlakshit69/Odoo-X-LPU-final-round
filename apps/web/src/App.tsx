@@ -248,13 +248,22 @@ function MainRouter() {
       return <SettingsView />;
     }
 
-    // Default to Public Landing
-    return (
-      <PublicHome
-        onNavigateStaff={() => navigate(isAuthenticated ? getHomePathForRole(role) : '/login')}
-        onNavigatePortal={() => navigate(isAuthenticated && role === 'member' ? '/portal' : '/login')}
-      />
-    );
+    if (currentPath === '/' || currentPath === '/public') {
+      return (
+        <PublicHome
+          onNavigateStaff={() => navigate(isAuthenticated ? getHomePathForRole(role) : '/login')}
+          onNavigatePortal={() => navigate(isAuthenticated && role === 'member' ? '/portal' : '/login')}
+        />
+      );
+    }
+
+    // Default to role home or login for unknown routes
+    if (isAuthenticated) {
+      navigate(getHomePathForRole(role));
+      return null;
+    }
+    navigate('/login');
+    return null;
   };
 
   return (

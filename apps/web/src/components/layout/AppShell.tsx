@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TopPillNavbar } from './TopPillNavbar';
 import { FloatingIconRail } from './FloatingIconRail';
 import { useAuth } from '../../auth/AuthContext';
+import { getHomePathForRole } from '../../lib/utils';
 import {
   Search, X, ArrowRight, UserCheck, CalendarDays, UserPlus,
   LayoutDashboard, Contact2, Receipt, Wallet, Users, Settings, UserCircle,
@@ -28,7 +29,7 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
   const handleAreaSwitch = (area: 'public' | 'portal' | 'admin') => {
     if (area === 'public') onNavigate('/');
     else if (area === 'portal') onNavigate('/portal');
-    else if (area === 'admin') onNavigate('/admin/courts');
+    else if (area === 'admin') onNavigate(getHomePathForRole(role));
   };
 
   const isMember = role === 'member';
@@ -92,10 +93,8 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
       )}
 
       {/* Main Container */}
-      <div className={`flex-1 flex flex-col w-full ${activeArea === 'admin' && isAuthenticated ? 'md:pl-20 xl:pl-0' : ''}`}>
-        <main className={`flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 ${
-          activeArea === 'admin' && isAuthenticated ? 'xl:pl-20' : ''
-        }`}>
+      <div className={`flex-1 flex flex-col w-full ${activeArea === 'admin' && isAuthenticated ? 'md:pl-20' : ''}`}>
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           {children}
         </main>
       </div>

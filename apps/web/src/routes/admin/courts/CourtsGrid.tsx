@@ -45,6 +45,25 @@ export function CourtsGrid() {
   const [cancelReason, setCancelReason] = useState('Member requested');
   const [cancelResult, setCancelResult] = useState<{ refundPaise: number; refundPercentage: number } | null>(null);
 
+  // Auto-populate member from URL query param if navigated from FrontDesk
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const mId = params.get('memberId');
+    if (mId) {
+      api.members.get(mId).then((m) => {
+        if (m) {
+          setSelectedMember({
+            id: m.id,
+            fullName: m.fullName,
+            phone: m.phone,
+            currentPlan: m.plan?.code || null,
+          });
+          setMemberSearch(m.fullName);
+        }
+      }).catch(console.error);
+    }
+  }, []);
+
   // Fetch court types dynamically from API (never hardcoded)
   const { data: courtTypes = [] } = useQuery<CourtType[]>({
     queryKey: ['court-types'],

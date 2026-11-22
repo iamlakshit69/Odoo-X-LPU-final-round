@@ -33,7 +33,7 @@ export function FrontDesk({ onNavigateBookCourt }: FrontDeskProps) {
   const queryClient = useQueryClient();
   const { showToast, showError } = useToast();
 
-  const [omniInput, setOmniInput] = useState('CC-000123');
+  const [omniInput, setOmniInput] = useState('');
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
   const [timelineTab, setTimelineTab] = useState<'all' | 'booking' | 'order' | 'tab' | 'payment' | 'checkin'>('all');
   const [renewDialogOpen, setRenewDialogOpen] = useState(false);
@@ -43,7 +43,7 @@ export function FrontDesk({ onNavigateBookCourt }: FrontDeskProps) {
   const { data: searchResults, isFetching: isSearching } = useQuery({
     queryKey: ['members-omni', omniInput],
     queryFn: () => api.members.list({ q: omniInput, limit: 8 }),
-    enabled: omniInput.trim().length >= 1,
+    enabled: omniInput.trim().length >= 2,
   });
 
   // Auto-select first member when initial results return
