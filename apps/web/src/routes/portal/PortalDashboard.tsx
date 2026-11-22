@@ -626,7 +626,7 @@ function PortalShopOrdering({ memberId }: { memberId?: string | null }) {
   // 1. Fetch public/portal products
   const { data: productsData, isLoading } = useQuery({
     queryKey: ['portal-products'],
-    queryFn: () => api.shop.getProducts({ active: true }),
+    queryFn: () => api.shop.getPublicProducts(),
   });
 
   const products = productsData?.items || [];
