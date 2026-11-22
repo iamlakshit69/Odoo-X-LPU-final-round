@@ -39,7 +39,7 @@ interface PortalDashboardProps {
 type PortalTab = 'dashboard' | 'book' | 'bookings' | 'shop' | 'invoices' | 'notifications';
 
 export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: PortalDashboardProps) {
-  const { user, memberId, activePlan, isAuthenticated } = useAuth();
+  const { user, role, memberId, activePlan, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const { showToast, showError } = useToast();
 
@@ -120,7 +120,11 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold uppercase tracking-widest text-accent-orange">
-                Champions Club Member
+                {role === 'member'
+                  ? 'Champions Club Member'
+                  : role === 'owner'
+                  ? 'Club Owner & Executive'
+                  : `Club Staff (${role?.replace('_', ' ')?.toUpperCase()})`}
               </span>
               {memberProfile?.memberCode && (
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-canvas border border-border text-mutedText">
@@ -130,17 +134,25 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
             </div>
             <h2 className="text-2xl font-black text-primaryText">{user?.name}</h2>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-accent-lime/20 text-lime-900 dark:text-lime-300">
-                {activePlan || 'Gold'} Tier
-              </span>
-              {expiryCountdownDays !== null && (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-canvas border border-border text-primaryText">
-                  <span className="text-accent-orange font-bold">{expiryCountdownDays} days</span> until renewal
-                </span>
-              )}
-              {endsOn && (
-                <span className="text-xs text-mutedText font-mono">
-                  (Valid till {endsOn})
+              {role === 'member' ? (
+                <>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-accent-lime/20 text-lime-900 dark:text-lime-300">
+                    {activePlan || 'Standard'} Tier
+                  </span>
+                  {expiryCountdownDays !== null && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-canvas border border-border text-primaryText">
+                      <span className="text-accent-orange font-bold">{expiryCountdownDays} days</span> until renewal
+                    </span>
+                  )}
+                  {endsOn && (
+                    <span className="text-xs text-mutedText font-mono">
+                      (Valid till {endsOn})
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-accent-orange/20 text-accent-orange border border-accent-orange/30">
+                  {role === 'owner' ? '👑 Executive Admin' : `🛡️ Staff Account (${role?.replace('_', ' ')})`}
                 </span>
               )}
             </div>
@@ -197,26 +209,42 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl border border-border bg-surface shadow-sm space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-mutedText">
-                Active Tier
+                {role === 'member' ? 'Active Tier' : 'Account Role'}
               </span>
-              <div className="text-xl font-black text-primaryText capitalize">{activePlan || 'Gold'}</div>
+              <div className="text-xl font-black text-primaryText capitalize">
+                {role === 'member'
+                  ? activePlan || 'Standard'
+                  : role === 'owner'
+                  ? 'Club Owner'
+                  : role?.replace('_', ' ') || 'Staff Member'}
+              </div>
               <p className="text-[11px] text-mutedText">
-                {activePlan === 'gold'
-                  ? 'Complimentary court booking at all times'
-                  : activePlan === 'silver'
-                  ? '40% peak, 60% off-peak court discount'
-                  : 'Junior member tier with court discounts'}
+                {role === 'member'
+                  ? activePlan === 'gold'
+                    ? 'Complimentary court booking at all times'
+                    : activePlan === 'silver'
+                    ? '40% peak, 60% off-peak court discount'
+                    : 'Junior member tier with court discounts'
+                  : role === 'owner'
+                  ? 'Unrestricted access across all club systems'
+                  : 'Role-based staff credentials and authorizations'}
               </p>
             </div>
 
             <div className="p-5 rounded-2xl border border-border bg-surface shadow-sm space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-mutedText">
-                Validity & Expiry
+                {role === 'member' ? 'Validity & Expiry' : 'Access Status'}
               </span>
               <div className="text-xl font-black text-accent-orange">
-                {expiryCountdownDays !== null ? `${expiryCountdownDays} Days Left` : 'Active'}
+                {role === 'member'
+                  ? expiryCountdownDays !== null
+                    ? `${expiryCountdownDays} Days Left`
+                    : 'Active'
+                  : 'Active System Access'}
               </div>
-              <p className="text-[11px] text-mutedText">Renewal date: {endsOn || 'Continuous'}</p>
+              <p className="text-[11px] text-mutedText">
+                {role === 'member' ? `Renewal date: ${endsOn || 'Continuous'}` : 'Internal session verified'}
+              </p>
             </div>
 
             <div className="p-5 rounded-2xl border border-border bg-surface shadow-sm space-y-1">
@@ -399,6 +427,7 @@ function PortalCourtBooking({
   memberId?: string | null;
   activePlan?: string | null;
 }) {
+  const { role } = useAuth();
   const queryClient = useQueryClient();
   const { showToast, showError } = useToast();
 
@@ -565,8 +594,12 @@ function PortalCourtBooking({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-mutedText">Member Tier:</span>
-                <span className="font-bold uppercase text-accent-orange">{activePlan || 'Gold'}</span>
+                <span className="text-mutedText">{role === 'member' ? 'Member Tier:' : 'Access Level:'}</span>
+                <span className="font-bold uppercase text-accent-orange">
+                  {role === 'member'
+                    ? (activePlan || 'Standard')
+                    : (role === 'owner' ? 'Owner / Admin' : 'Staff Pass')}
+                </span>
               </div>
             </div>
 

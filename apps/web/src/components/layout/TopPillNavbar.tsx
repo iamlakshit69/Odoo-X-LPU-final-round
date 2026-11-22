@@ -113,16 +113,18 @@ export function TopPillNavbar({
           >
             Portal
           </button>
-          <button
-            onClick={() => onNavigateArea('admin')}
-            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
-              activeArea === 'admin'
-                ? 'bg-surface text-primaryText shadow-sm'
-                : 'text-mutedText hover:text-primaryText'
-            }`}
-          >
-            Staff
-          </button>
+          {role !== 'member' && (
+            <button
+              onClick={() => onNavigateArea('admin')}
+              className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
+                activeArea === 'admin'
+                  ? 'bg-surface text-primaryText shadow-sm'
+                  : 'text-mutedText hover:text-primaryText'
+              }`}
+            >
+              Staff
+            </button>
+          )}
         </nav>
 
         {/* Actions & Utilities */}

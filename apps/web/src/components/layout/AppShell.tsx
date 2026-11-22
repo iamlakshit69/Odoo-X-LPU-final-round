@@ -14,7 +14,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role, hasPermission } = useAuth();
   const [commandOpen, setCommandOpen] = useState(false);
   const [cmdSearch, setCmdSearch] = useState('');
 
@@ -31,25 +31,49 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
     else if (area === 'admin') onNavigate('/admin/courts');
   };
 
-  const commandItems = [
-    { title: 'Court Availability Grid', icon: <CalendarDays className="w-4 h-4 text-accent-orange" />, path: '/admin/courts' },
-    { title: 'Front Desk Member Omnibox', icon: <UserCheck className="w-4 h-4 text-emerald-500" />, path: '/admin/desk' },
-    { title: 'Register New Member', icon: <UserPlus className="w-4 h-4 text-blue-500" />, path: '/admin/members/new' },
-    { title: 'Shop POS Counter', icon: <ArrowRight className="w-4 h-4 text-accent-orange" />, path: '/admin/shop/pos' },
-    { title: 'Shop Orders Board', icon: <ArrowRight className="w-4 h-4 text-purple-500" />, path: '/admin/shop/orders' },
-    { title: 'Warehouse v_stock', icon: <ArrowRight className="w-4 h-4 text-blue-500" />, path: '/admin/shop/stock' },
-    { title: 'Lounge Bar Floor Plan', icon: <ArrowRight className="w-4 h-4 text-amber-500" />, path: '/admin/bar' },
-    { title: 'Kitchen KDS Station', icon: <ArrowRight className="w-4 h-4 text-red-500" />, path: '/admin/kds/kitchen' },
-    { title: 'Bar KDS Station', icon: <ArrowRight className="w-4 h-4 text-cyan-500" />, path: '/admin/kds/bar' },
-    { title: 'KPI Dashboard', icon: <LayoutDashboard className="w-4 h-4 text-accent-orange" />, path: '/admin/dashboard' },
-    { title: 'CRM Leads Board', icon: <Contact2 className="w-4 h-4 text-orange-500" />, path: '/admin/crm' },
-    { title: 'Finance – Invoices', icon: <Receipt className="w-4 h-4 text-yellow-500" />, path: '/admin/finance/invoices' },
-    { title: 'Finance – Expenses', icon: <Wallet className="w-4 h-4 text-green-500" />, path: '/admin/finance/expenses' },
-    { title: 'HR Management', icon: <Users className="w-4 h-4 text-indigo-500" />, path: '/admin/hr' },
-    { title: 'Club Settings', icon: <Settings className="w-4 h-4 text-mutedText" />, path: '/admin/settings' },
-    { title: 'Member Portal', icon: <UserCircle className="w-4 h-4 text-lime-500" />, path: '/portal' },
-    { title: 'Public Home & Sports Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
-  ].filter((item) => item.title.toLowerCase().includes(cmdSearch.toLowerCase()));
+  const isMember = role === 'member';
+
+  const rawCommands: { title: string; icon: React.ReactNode; path: string; permission?: string }[] = !isAuthenticated
+    ? [
+        { title: 'Public Home & Facility Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
+        { title: 'Sign In (Member & Staff Access)', icon: <UserCircle className="w-4 h-4 text-accent-orange" />, path: '/login' },
+      ]
+    : isMember
+    ? [
+        { title: 'Member Portal – Overview & Stats', icon: <UserCircle className="w-4 h-4 text-lime-500" />, path: '/portal' },
+        { title: 'Court Reservation (Self-Service)', icon: <CalendarDays className="w-4 h-4 text-accent-orange" />, path: '/portal' },
+        { title: 'My Bookings & Match Schedule', icon: <UserCheck className="w-4 h-4 text-blue-500" />, path: '/portal' },
+        { title: 'Pro Shop Gear & Catalog', icon: <ArrowRight className="w-4 h-4 text-purple-500" />, path: '/portal' },
+        { title: 'My Invoices & Payment History', icon: <Receipt className="w-4 h-4 text-yellow-500" />, path: '/portal' },
+        { title: 'Public Home & Club Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
+      ]
+    : [
+        { title: 'Court Availability Grid', icon: <CalendarDays className="w-4 h-4 text-accent-orange" />, path: '/admin/courts', permission: 'booking:read' },
+        { title: 'Front Desk Member Omnibox', icon: <UserCheck className="w-4 h-4 text-emerald-500" />, path: '/admin/desk', permission: 'member:read' },
+        { title: 'Register New Member', icon: <UserPlus className="w-4 h-4 text-blue-500" />, path: '/admin/members/new', permission: 'member:create' },
+        { title: 'Shop POS Counter', icon: <ArrowRight className="w-4 h-4 text-accent-orange" />, path: '/admin/shop/pos', permission: 'order:create' },
+        { title: 'Shop Orders Board', icon: <ArrowRight className="w-4 h-4 text-purple-500" />, path: '/admin/shop/orders', permission: 'order:read' },
+        { title: 'Warehouse Stock & Inventory', icon: <ArrowRight className="w-4 h-4 text-blue-500" />, path: '/admin/shop/stock', permission: 'stock:read' },
+        { title: 'Lounge Bar Floor Plan', icon: <ArrowRight className="w-4 h-4 text-amber-500" />, path: '/admin/bar', permission: 'tab:read' },
+        { title: 'Kitchen KDS Station', icon: <ArrowRight className="w-4 h-4 text-red-500" />, path: '/admin/kds/kitchen', permission: 'kds:read' },
+        { title: 'Bar KDS Station', icon: <ArrowRight className="w-4 h-4 text-cyan-500" />, path: '/admin/kds/bar', permission: 'kds:read' },
+        { title: 'KPI Dashboard & Executive Analytics', icon: <LayoutDashboard className="w-4 h-4 text-accent-orange" />, path: '/admin/dashboard', permission: 'finance:read' },
+        { title: 'CRM Leads Board', icon: <Contact2 className="w-4 h-4 text-orange-500" />, path: '/admin/crm', permission: 'lead:read' },
+        { title: 'Finance – Invoices & Billing', icon: <Receipt className="w-4 h-4 text-yellow-500" />, path: '/admin/finance/invoices', permission: 'invoice:read' },
+        { title: 'Finance – Expenses & Ledgers', icon: <Wallet className="w-4 h-4 text-green-500" />, path: '/admin/finance/expenses', permission: 'expense:manage' },
+        { title: 'HR Management & Staff Rota', icon: <Users className="w-4 h-4 text-indigo-500" />, path: '/admin/hr', permission: 'hr:read' },
+        { title: 'Club Settings & RBAC Permissions', icon: <Settings className="w-4 h-4 text-mutedText" />, path: '/admin/settings', permission: 'settings:manage' },
+        { title: 'Member Portal Preview', icon: <UserCircle className="w-4 h-4 text-lime-500" />, path: '/portal' },
+        { title: 'Public Home & Facility Spotlight', icon: <ArrowRight className="w-4 h-4 text-mutedText" />, path: '/' },
+      ].filter((item) => {
+        if (role === 'owner') return true;
+        if (!item.permission) return true;
+        return hasPermission(item.permission);
+      });
+
+  const commandItems = rawCommands.filter((item) =>
+    item.title.toLowerCase().includes(cmdSearch.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-canvas text-primaryText flex flex-col relative selection:bg-accent-orange selection:text-white">
