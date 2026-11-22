@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   QrCode,
   ShieldCheck,
+  Lock,
 } from 'lucide-react';
 
 export function NewMember({ onDone }: { onDone?: () => void }) {
@@ -35,6 +36,7 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
   const [email, setEmail] = useState('');
   const [dob, setDob] = useState('');
   const [notes, setNotes] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   // Creation results
@@ -80,7 +82,8 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
         dob: dob || undefined,
         notes: notes.trim() ? notes.trim() : undefined,
         planCode: selectedPlan.code as PlanCode,
-      });
+        ...(password.trim() && email.trim() ? { password: password.trim() } : {}),
+      } as any);
     },
     onSuccess: (data) => {
       setCreatedData({
@@ -201,6 +204,26 @@ export function NewMember({ onDone }: { onDone?: () => void }) {
                   className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-canvas text-xs text-primaryText focus:ring-1 focus:ring-accent-orange focus:outline-none"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-mutedText">Portal Password <span className="text-accent-orange/80">(optional)</span></label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mutedText" />
+                <input
+                  type="password"
+                  placeholder="Min 6 chars — enables member portal login"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-border bg-canvas text-xs text-primaryText focus:ring-1 focus:ring-accent-orange focus:outline-none"
+                />
+              </div>
+              {password && !email && (
+                <p className="text-[10px] text-amber-500 mt-0.5">⚠ Email is required to enable portal login.</p>
+              )}
+              {password && email && (
+                <p className="text-[10px] text-emerald-500 mt-0.5">✓ Member can log into self-service portal with this email & password.</p>
+              )}
             </div>
 
             <div className="space-y-1">

@@ -524,6 +524,7 @@ function PortalCourtBooking({
           <input
             type="date"
             value={date}
+            min={getTodayDateString()}
             onChange={(e) => setDate(e.target.value)}
             className="px-3 py-1.5 text-xs rounded-xl bg-canvas border border-border text-primaryText"
           />
@@ -551,17 +552,19 @@ function PortalCourtBooking({
                 {c.slots.map((s, idx) => {
                   const isFree = s.status === 'free';
                   const isSocial = s.status === 'social';
+                  const isPast = new Date(s.startAt) < new Date();
+                  const isBookable = isFree && !isPast;
 
                   return (
                     <div
                       key={idx}
                       className={`p-2 rounded-xl text-xs flex items-center justify-between border transition-all ${
-                        isFree
+                        isBookable
                           ? 'bg-surface hover:border-accent-orange cursor-pointer border-border'
-                          : 'bg-surface/40 border-border/40 text-mutedText opacity-75'
+                          : 'bg-surface/40 border-border/40 text-mutedText opacity-75 cursor-not-allowed'
                       }`}
                       onClick={() => {
-                        if (isFree) {
+                        if (isBookable) {
                           setSelectedSlot({
                             courtId: c.court.id,
                             courtName: c.court.name,
@@ -576,7 +579,11 @@ function PortalCourtBooking({
                         {formatTime(s.startAt)} - {formatTime(s.endAt)}
                       </span>
 
-                      {isFree ? (
+                      {isPast && isFree ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-500/10 text-gray-500">
+                          Past
+                        </span>
+                      ) : isBookable ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                           Free
                         </span>

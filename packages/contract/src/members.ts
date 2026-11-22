@@ -122,6 +122,7 @@ export const createMemberRequestSchema = z.object({
   planCode: planCodeSchema,
   guardianMemberId: uuidSchema.optional(),
   relationship: z.string().optional(),
+  password: z.string().min(6).optional(), // Portal login password (optional — required only if email is set)
 });
 export type CreateMemberRequest = z.infer<typeof createMemberRequestSchema>;
 

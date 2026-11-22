@@ -20,6 +20,8 @@ import {
   checkins,
 } from '../../db/schema/members.js';
 import { bookings } from '../../db/schema/courts.js';
+import { users, roles } from '../../db/schema/core.js';
+import { hashPassword } from '../../core/auth.js';
 import { clubLocalToday, addClubDays, clubLocalDayBoundsUtc } from '../../core/clubTime.js';
 import { AppError } from '../../core/errors.js';
 import { Audit } from '../../core/audit.js';
@@ -332,6 +334,37 @@ export class MembersService {
         guardianMemberId: input.guardianMemberId,
         relationship: input.relationship || 'Guardian',
       });
+    }
+
+    // 5b. Create portal login user if email + password provided
+    if (input.email && (input as any).password) {
+      const [memberRole] = await db
+        .select({ id: roles.id })
+        .from(roles)
+        .where(eq(roles.code, 'member'))
+        .limit(1);
+
+      if (memberRole) {
+        const passwordHash = await hashPassword((input as any).password);
+        await db
+          .insert(users)
+          .values({
+            email: input.email,
+            passwordHash,
+            name: input.fullName,
+            roleId: memberRole.id,
+            memberId: newMember.id,
+            active: true,
+          })
+          .onConflictDoUpdate({
+            target: users.email,
+            set: {
+              passwordHash,
+              memberId: newMember.id,
+              active: true,
+            },
+          });
+      }
     }
 
     // 6. Audit & events
