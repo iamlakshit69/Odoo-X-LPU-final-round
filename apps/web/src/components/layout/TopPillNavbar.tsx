@@ -1,22 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Bell, Search, LogOut, User as UserIcon, Shield, Sparkles, Check } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Sun, Moon, Bell, Search, LogOut, Sparkles, ChevronDown,
+  LayoutDashboard, CalendarDays, UserCheck, Receipt, Users,
+  Settings, ShoppingBag, Coffee, Contact2, ExternalLink, Shield,
+  Package, Boxes, Utensils, Wallet, UserCircle, Check
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../auth/AuthContext';
 
 interface TopPillNavbarProps {
-  activeArea: 'public' | 'portal' | 'admin';
-  onNavigateArea: (area: 'public' | 'portal' | 'admin') => void;
+  currentPath?: string;
+  onNavigate?: (path: string) => void;
+  activeArea?: 'public' | 'portal' | 'admin';
+  onNavigateArea?: (area: 'public' | 'portal' | 'admin') => void;
   onOpenCommandPalette?: () => void;
 }
 
+interface NavLinkItem {
+  id: string;
+  label: string;
+  path: string;
+  icon?: React.ReactNode;
+}
+
 export function TopPillNavbar({
+  currentPath = '/',
+  onNavigate,
   activeArea,
   onNavigateArea,
   onOpenCommandPalette,
 }: TopPillNavbarProps) {
-  const { user, role, logout, isAuthenticated } = useAuth();
+  const { user, role, hasPermission, logout, isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     return (localStorage.getItem('cc_theme') as 'light' | 'dark') || 'dark';
   });
@@ -61,6 +82,20 @@ export function TopPillNavbar({
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Keyboard shortcut for ⌘K / Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -73,13 +108,139 @@ export function TopPillNavbar({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onOpenCommandPalette]);
 
+  // Navigate helper supporting path + hash
+  const handleNavClick = (path: string) => {
+    setMoreOpen(false);
+    setUserMenuOpen(false);
+    if (path.includes('#')) {
+      const [targetPath, hash] = path.split('#');
+      window.location.hash = hash;
+      if (onNavigate) {
+        onNavigate(targetPath);
+      } else if (onNavigateArea) {
+        if (targetPath.startsWith('/portal')) onNavigateArea('portal');
+        else if (targetPath.startsWith('/admin')) onNavigateArea('admin');
+        else onNavigateArea('public');
+      }
+    } else {
+      if (window.location.hash) {
+        window.history.pushState('', document.title, window.location.pathname + window.location.search);
+      }
+      if (onNavigate) {
+        onNavigate(path);
+      } else if (onNavigateArea) {
+        if (path.startsWith('/portal')) onNavigateArea('portal');
+        else if (path.startsWith('/admin')) onNavigateArea('admin');
+        else onNavigateArea('public');
+      }
+    }
+  };
+
+  // Determine active item
+  const isLinkActive = (path: string) => {
+    if (!currentPath) return false;
+    if (path === '/') return currentPath === '/';
+    if (path.includes('#')) {
+      const [base, hash] = path.split('#');
+      return currentPath === base && window.location.hash === `#${hash}`;
+    }
+    return currentPath === path || (path !== '/' && currentPath.startsWith(path));
+  };
+
+  // Construct Role-Specific Navigation Links
+  let primaryLinks: NavLinkItem[] = [];
+  let overflowLinks: NavLinkItem[] = [];
+
+  if (!isAuthenticated) {
+    primaryLinks = [
+      { id: 'home', label: 'Club Home', path: '/' },
+      { id: 'login', label: 'Member & Staff Login', path: '/login' },
+    ];
+  } else if (role === 'member') {
+    primaryLinks = [
+      { id: 'portal', label: 'Overview', path: '/portal' },
+      { id: 'book', label: 'Book Court', path: '/portal#book' },
+      { id: 'bookings', label: 'My Bookings', path: '/portal#bookings' },
+      { id: 'shop', label: 'Pro Shop', path: '/portal#shop' },
+      { id: 'invoices', label: 'Invoices', path: '/portal#invoices' },
+      { id: 'public', label: 'Club Spotlight', path: '/' },
+    ];
+  } else if (role === 'owner' || role === 'manager') {
+    // Owner has core management shortcuts upfront + clean overflow dropdown
+    primaryLinks = [
+      { id: 'dashboard', label: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+      { id: 'courts', label: 'Courts', path: '/admin/courts', icon: <CalendarDays className="w-3.5 h-3.5" /> },
+      { id: 'desk', label: 'Front Desk', path: '/admin/desk', icon: <UserCheck className="w-3.5 h-3.5" /> },
+      { id: 'finance', label: 'Finance', path: '/admin/finance/invoices', icon: <Receipt className="w-3.5 h-3.5" /> },
+      { id: 'hr', label: 'HR & Rota', path: '/admin/hr', icon: <Users className="w-3.5 h-3.5" /> },
+    ];
+    overflowLinks = [
+      { id: 'crm', label: 'CRM Leads Board', path: '/admin/crm', icon: <Contact2 className="w-4 h-4 text-orange-500" /> },
+      { id: 'pos', label: 'Shop POS Counter', path: '/admin/shop/pos', icon: <ShoppingBag className="w-4 h-4 text-accent-orange" /> },
+      { id: 'orders', label: 'Shop Orders Board', path: '/admin/shop/orders', icon: <Package className="w-4 h-4 text-purple-500" /> },
+      { id: 'stock', label: 'Warehouse Stock (v_stock)', path: '/admin/shop/stock', icon: <Boxes className="w-4 h-4 text-blue-500" /> },
+      { id: 'bar', label: 'Lounge Bar Floor Plan', path: '/admin/bar', icon: <Coffee className="w-4 h-4 text-amber-500" /> },
+      { id: 'kds-kitchen', label: 'Kitchen KDS Station', path: '/admin/kds/kitchen', icon: <Utensils className="w-4 h-4 text-red-500" /> },
+      { id: 'kds-bar', label: 'Bar KDS Station', path: '/admin/kds/bar', icon: <Coffee className="w-4 h-4 text-cyan-500" /> },
+      { id: 'expenses', label: 'Finance Expenses', path: '/admin/finance/expenses', icon: <Wallet className="w-4 h-4 text-green-500" /> },
+      { id: 'settings', label: 'Club Settings & RBAC', path: '/admin/settings', icon: <Settings className="w-4 h-4 text-mutedText" /> },
+      { id: 'portal-preview', label: 'Member Portal View', path: '/portal', icon: <UserCircle className="w-4 h-4 text-lime-500" /> },
+      { id: 'public-home', label: 'Public Website View', path: '/', icon: <Sparkles className="w-4 h-4 text-accent-orange" /> },
+    ];
+  } else if (role === 'hr') {
+    // HR Officer strictly sees HR operations and staff timetable
+    primaryLinks = [
+      { id: 'hr', label: 'HR Management & Rota', path: '/admin/hr', icon: <Users className="w-3.5 h-3.5" /> },
+      { id: 'courts', label: 'Courts Timetable', path: '/admin/courts', icon: <CalendarDays className="w-3.5 h-3.5" /> },
+      { id: 'desk', label: 'Club Directory', path: '/admin/desk', icon: <UserCheck className="w-3.5 h-3.5" /> },
+    ];
+  } else if (role === 'finance') {
+    // Finance Officer strictly sees financial books and reports
+    primaryLinks = [
+      { id: 'invoices', label: 'Invoices & Billing', path: '/admin/finance/invoices', icon: <Receipt className="w-3.5 h-3.5" /> },
+      { id: 'expenses', label: 'Club Expenses', path: '/admin/finance/expenses', icon: <Wallet className="w-3.5 h-3.5" /> },
+      { id: 'dashboard', label: 'Financial KPI', path: '/admin/dashboard', icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
+      { id: 'orders', label: 'POS Orders', path: '/admin/shop/orders', icon: <Package className="w-3.5 h-3.5" /> },
+    ];
+  } else if (role === 'front_desk') {
+    // Front Desk sees reception, member omnibox, courts, registration
+    primaryLinks = [
+      { id: 'courts', label: 'Courts Grid', path: '/admin/courts', icon: <CalendarDays className="w-3.5 h-3.5" /> },
+      { id: 'desk', label: 'Member Omnibox', path: '/admin/desk', icon: <UserCheck className="w-3.5 h-3.5" /> },
+      { id: 'new-member', label: 'Register Member', path: '/admin/members/new', icon: <UserCheck className="w-3.5 h-3.5" /> },
+      { id: 'crm', label: 'CRM Leads', path: '/admin/crm', icon: <Contact2 className="w-3.5 h-3.5" /> },
+    ];
+  } else if (role === 'shop_clerk' || role === 'cashier') {
+    // Shop Staff
+    primaryLinks = [
+      { id: 'pos', label: 'Shop POS', path: '/admin/shop/pos', icon: <ShoppingBag className="w-3.5 h-3.5" /> },
+      { id: 'orders', label: 'Orders Board', path: '/admin/shop/orders', icon: <Package className="w-3.5 h-3.5" /> },
+      { id: 'stock', label: 'Warehouse Stock', path: '/admin/shop/stock', icon: <Boxes className="w-3.5 h-3.5" /> },
+    ];
+  } else if (role === 'bartender' || role === 'kitchen') {
+    // F&B Staff
+    primaryLinks = [
+      { id: 'bar', label: 'Lounge Floor', path: '/admin/bar', icon: <Coffee className="w-3.5 h-3.5" /> },
+      { id: 'kds-kitchen', label: 'Kitchen KDS', path: '/admin/kds/kitchen', icon: <Utensils className="w-3.5 h-3.5" /> },
+      { id: 'kds-bar', label: 'Bar KDS', path: '/admin/kds/bar', icon: <Coffee className="w-3.5 h-3.5" /> },
+    ];
+  } else {
+    // Fallback role links
+    primaryLinks = [
+      { id: 'courts', label: 'Courts', path: '/admin/courts' },
+      { id: 'desk', label: 'Desk', path: '/admin/desk' },
+    ];
+  }
+
+  const isOverflowActive = overflowLinks.some((item) => isLinkActive(item.path));
+
   return (
     <header className="sticky top-4 z-40 px-2 sm:px-4 mb-6">
       <div className="max-w-7xl mx-auto flex items-center justify-between p-1.5 sm:p-2 rounded-full border border-border bg-surface/90 backdrop-blur-md shadow-lg transition-all duration-300">
         
         {/* Brand with morphing sport emblem */}
         <div
-          onClick={() => onNavigateArea('public')}
+          onClick={() => handleNavClick(isAuthenticated && role === 'member' ? '/portal' : (isAuthenticated ? '/admin/courts' : '/'))}
           className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1 cursor-pointer select-none group shrink-0"
         >
           <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-accent-orange flex items-center justify-center text-white shadow-md transition-transform duration-300 group-hover:scale-105">
@@ -91,39 +252,68 @@ export function TopPillNavbar({
           </div>
         </div>
 
-        {/* Public / Portal / Staff Pill Switcher */}
-        <nav className="flex items-center p-0.5 sm:p-1 rounded-full bg-canvas/80 border border-border/80 shrink-0">
-          <button
-            onClick={() => onNavigateArea('public')}
-            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
-              activeArea === 'public'
-                ? 'bg-surface text-primaryText shadow-sm'
-                : 'text-mutedText hover:text-primaryText'
-            }`}
-          >
-            Public
-          </button>
-          <button
-            onClick={() => onNavigateArea('portal')}
-            className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
-              activeArea === 'portal'
-                ? 'bg-surface text-primaryText shadow-sm'
-                : 'text-mutedText hover:text-primaryText'
-            }`}
-          >
-            Portal
-          </button>
-          {role !== 'member' && (
-            <button
-              onClick={() => onNavigateArea('admin')}
-              className={`px-2.5 sm:px-3.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold transition-all duration-200 ${
-                activeArea === 'admin'
-                  ? 'bg-surface text-primaryText shadow-sm'
-                  : 'text-mutedText hover:text-primaryText'
-              }`}
-            >
-              Staff
-            </button>
+        {/* Dynamic Role-Based Navigation Pill */}
+        <nav className="flex items-center p-0.5 sm:p-1 rounded-full bg-canvas/80 border border-border/80 max-w-[62vw] lg:max-w-none overflow-x-auto no-scrollbar shrink">
+          {primaryLinks.map((link) => {
+            const active = isLinkActive(link.path);
+            return (
+              <button
+                key={link.id}
+                onClick={() => handleNavClick(link.path)}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                  active
+                    ? 'bg-accent-orange text-white shadow-sm shadow-accent-orange/20 font-bold'
+                    : 'text-mutedText hover:text-primaryText hover:bg-surface/60'
+                }`}
+              >
+                {link.icon}
+                <span>{link.label}</span>
+              </button>
+            );
+          })}
+
+          {/* More Dropdown for Owner / Manager */}
+          {overflowLinks.length > 0 && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setMoreOpen((prev) => !prev)}
+                className={`flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                  isOverflowActive
+                    ? 'bg-accent-orange text-white shadow-sm font-bold'
+                    : 'text-mutedText hover:text-primaryText hover:bg-surface/60'
+                }`}
+              >
+                <span>More</span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${moreOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {moreOpen && (
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-56 rounded-2xl border border-border bg-surface p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 space-y-1">
+                  <div className="px-2 py-1 text-[10px] font-bold text-mutedText uppercase tracking-wider border-b border-border/60 mb-1">
+                    Club Operations Suite
+                  </div>
+                  <div className="max-h-72 overflow-y-auto no-scrollbar space-y-0.5">
+                    {overflowLinks.map((item) => {
+                      const active = isLinkActive(item.path);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleNavClick(item.path)}
+                          className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-semibold text-left transition-colors ${
+                            active
+                              ? 'bg-accent-orange/15 text-accent-orange font-bold'
+                              : 'text-primaryText hover:bg-canvas'
+                          }`}
+                        >
+                          {item.icon}
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </nav>
 
@@ -225,29 +415,83 @@ export function TopPillNavbar({
 
           {/* User Pill / Login state */}
           {isAuthenticated && user ? (
-            <div className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full border border-border bg-canvas/80 shadow-inner shrink-0">
-              <div className="w-6 h-6 rounded-full bg-accent-orange/20 text-accent-orange flex items-center justify-center text-xs font-bold uppercase">
-                {user.name?.charAt(0) || 'U'}
-              </div>
-              <div className="hidden lg:block text-left text-xs pr-1">
-                <span className="font-semibold text-primaryText block leading-tight truncate max-w-[100px]">
-                  {user.name}
-                </span>
-                <span className="text-[10px] uppercase font-bold text-accent-orange block">
-                  {role || user.roleCode}
-                </span>
-              </div>
+            <div className="relative" ref={userMenuRef}>
               <button
-                onClick={logout}
-                title="Log out"
-                className="p-1 rounded-full hover:bg-surface text-mutedText hover:text-red-500 transition-colors"
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className="flex items-center gap-1.5 pl-2 pr-1.5 py-1 rounded-full border border-border bg-canvas/80 hover:bg-canvas shadow-inner shrink-0 transition-colors"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <div className="w-6 h-6 rounded-full bg-accent-orange/20 text-accent-orange flex items-center justify-center text-xs font-bold uppercase">
+                  {user.name?.charAt(0) || 'U'}
+                </div>
+                <div className="hidden lg:block text-left text-xs pr-1">
+                  <span className="font-semibold text-primaryText block leading-tight truncate max-w-[90px]">
+                    {user.name}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold text-accent-orange block">
+                    {role || user.roleCode}
+                  </span>
+                </div>
+                <ChevronDown className="w-3 h-3 text-mutedText hidden sm:block" />
               </button>
+
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-border bg-surface p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 space-y-1">
+                  <div className="px-3 py-2 border-b border-border/60">
+                    <p className="text-xs font-bold text-primaryText truncate">{user.name}</p>
+                    <p className="text-[10px] text-mutedText truncate">{user.email}</p>
+                    <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-accent-orange/15 text-accent-orange border border-accent-orange/30">
+                      <Shield className="w-2.5 h-2.5" />
+                      <span>{role?.replace('_', ' ') || 'User'}</span>
+                    </div>
+                  </div>
+
+                  <div className="py-1 space-y-0.5 text-xs">
+                    {role !== 'member' && (
+                      <button
+                        onClick={() => handleNavClick('/portal')}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-canvas text-primaryText text-left transition-colors"
+                      >
+                        <UserCircle className="w-3.5 h-3.5 text-lime-500" />
+                        <span>Member Portal</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleNavClick('/')}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-canvas text-primaryText text-left transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-accent-orange" />
+                      <span>Club Public Site</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        onOpenCommandPalette?.();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-canvas text-primaryText text-left transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5 text-mutedText" />
+                      <span>Command Palette (⌘K)</span>
+                    </button>
+                  </div>
+
+                  <div className="pt-1 border-t border-border/60">
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-red-500/10 text-red-500 text-xs font-semibold text-left transition-colors"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <button
-              onClick={() => onNavigateArea('admin')}
+              onClick={() => handleNavClick('/login')}
               className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold uppercase tracking-wider bg-accent-orange text-white hover:bg-accent-orange/90 transition-colors shadow-md shrink-0"
             >
               Log in

@@ -79,6 +79,8 @@ export function AppShell({ currentPath, onNavigate, children }: AppShellProps) {
     <div className="min-h-screen bg-canvas text-primaryText flex flex-col relative selection:bg-accent-orange selection:text-white">
       {/* Top Pill Navbar */}
       <TopPillNavbar
+        currentPath={currentPath}
+        onNavigate={onNavigate}
         activeArea={activeArea}
         onNavigateArea={handleAreaSwitch}
         onOpenCommandPalette={() => setCommandOpen(true)}

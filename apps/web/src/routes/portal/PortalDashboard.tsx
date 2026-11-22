@@ -43,7 +43,30 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
   const queryClient = useQueryClient();
   const { showToast, showError } = useToast();
 
-  const [activeTab, setActiveTab] = useState<PortalTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<PortalTab>(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (['dashboard', 'book', 'bookings', 'shop', 'invoices', 'notifications'].includes(hash)) {
+      return hash as PortalTab;
+    }
+    return 'dashboard';
+  });
+
+  // Sync hash changes from navbar or external links
+  React.useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (['dashboard', 'book', 'bookings', 'shop', 'invoices', 'notifications'].includes(hash)) {
+        setActiveTab(hash as PortalTab);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const handleSelectTab = (tab: PortalTab) => {
+    setActiveTab(tab);
+    window.location.hash = tab;
+  };
 
   // 1. Fetch Member Profile & Membership Dates
   const { data: memberProfile } = useQuery({
@@ -161,14 +184,14 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setActiveTab('book')}
+            onClick={() => handleSelectTab('book')}
             className="px-5 py-2.5 rounded-xl bg-accent-orange hover:bg-accent-orange/90 text-white text-xs font-bold uppercase tracking-wider shadow-md transition-all flex items-center gap-1.5"
           >
             <Calendar className="w-4 h-4" />
             <span>Book Court</span>
           </button>
           <button
-            onClick={() => setActiveTab('shop')}
+            onClick={() => handleSelectTab('shop')}
             className="px-4 py-2.5 rounded-xl bg-canvas border border-border hover:bg-surface text-primaryText text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5"
           >
             <ShoppingBag className="w-4 h-4 text-accent-orange" />
@@ -189,7 +212,7 @@ export function PortalDashboard({ onNavigateBookCourt, onNavigateLogin }: Portal
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as PortalTab)}
+            onClick={() => handleSelectTab(tab.id as PortalTab)}
             className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
               activeTab === tab.id
                 ? 'border-accent-orange text-accent-orange'
