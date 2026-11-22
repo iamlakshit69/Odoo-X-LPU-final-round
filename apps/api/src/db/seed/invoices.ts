@@ -13,6 +13,12 @@ import { members } from '../schema/members.js';
 import { users } from '../schema/core.js';
 
 export async function seed() {
+  const existing = await db.select({ id: taxRates.id }).from(taxRates).limit(1);
+  if (existing.length > 0) {
+    console.log('[Seed:invoices] Invoices and tax rates already seeded, skipping.');
+    return;
+  }
+
   console.log('[Seed:invoices] Seeding tax rates, business clients, invoices, payments, and expenses...');
 
   // 1. Tax Rates (Section 5.4)

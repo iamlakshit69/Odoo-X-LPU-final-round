@@ -77,6 +77,11 @@ export async function deployDatabase() {
       }
     }
 
+    // Refresh and ensure upcoming seeds are up-to-date
+    console.log('[db:deploy] Ensuring all seed fixtures are populated...');
+    const { runAllSeeds } = await import('../src/db/seed/index.js');
+    await runAllSeeds();
+
     console.log('[db:deploy] Database schema verified and up-to-date.');
   } finally {
     try {

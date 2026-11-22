@@ -14,6 +14,12 @@ import { users } from '../schema/core.js';
 import { members } from '../schema/members.js';
 
 export async function seed() {
+  const existing = await db.select({ id: menuItems.id }).from(menuItems).limit(1);
+  if (existing.length > 0) {
+    console.log('[Seed:bar] Bar menu and tables already seeded, skipping.');
+    return;
+  }
+
   console.log('[Seed:bar] Seeding 20 menu items, 6 tables, till sessions, open tabs, and settled tab...');
 
   // 1. 20 Menu Items (Food and Drink)

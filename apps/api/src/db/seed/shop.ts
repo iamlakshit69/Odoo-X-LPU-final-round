@@ -13,6 +13,12 @@ import {
 import { members } from '../schema/members.js';
 
 export async function seed() {
+  const existing = await db.select({ id: products.id }).from(products).limit(1);
+  if (existing.length > 0) {
+    console.log('[Seed:shop] Products already seeded, skipping.');
+    return;
+  }
+
   console.log('[Seed:shop] Seeding 25 products with variants, stock levels, and demo orders...');
 
   // 1. 25 Products Data
