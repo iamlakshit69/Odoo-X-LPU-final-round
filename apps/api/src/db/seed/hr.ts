@@ -112,7 +112,7 @@ export async function seed() {
   const now = new Date();
   const shiftAreas = ['front_desk', 'shop', 'bar', 'courts'];
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 14; i++) {
     const shiftDate = new Date(now.getTime() + (i - 3) * 24 * 60 * 60 * 1000);
     const morningStart = new Date(shiftDate);
     morningStart.setHours(6, 0, 0, 0);

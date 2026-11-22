@@ -114,6 +114,75 @@ export async function seedCourts() {
     }
   }
 
+  // 3b. Seed realistic upcoming bookings across the next 5 days
+  const aaravMember = allMembers.find((m: any) => m.email === 'member@championsclub.in') || allMembers[0];
+
+  const upcomingSchedule: Array<{
+    dayOffset: number;
+    hour: number;
+    courtIndex: number;
+    member: any;
+    kind?: 'regular' | 'block';
+  }> = [
+    // Tomorrow (Day +1)
+    { dayOffset: 1, hour: 8, courtIndex: 0, member: aaravMember }, // Aarav morning match
+    { dayOffset: 1, hour: 10, courtIndex: 3, member: allMembers[1] },
+    { dayOffset: 1, hour: 16, courtIndex: 5, member: allMembers[2] },
+    { dayOffset: 1, hour: 17, courtIndex: 7, member: allMembers[3] }, // Cricket net
+    { dayOffset: 1, hour: 18, courtIndex: 1, member: allMembers[4] },
+    { dayOffset: 1, hour: 19, courtIndex: 0, member: aaravMember }, // Aarav prime evening
+    { dayOffset: 1, hour: 20, courtIndex: 4, member: allMembers[5] },
+
+    // Day +2
+    { dayOffset: 2, hour: 9, courtIndex: 6, member: allMembers[6] },
+    { dayOffset: 2, hour: 11, courtIndex: 2, member: allMembers[7] },
+    { dayOffset: 2, hour: 17, courtIndex: 7, member: allMembers[8] },
+    { dayOffset: 2, hour: 18, courtIndex: 3, member: aaravMember }, // Aarav Padel
+    { dayOffset: 2, hour: 19, courtIndex: 0, member: allMembers[9] },
+    { dayOffset: 2, hour: 20, courtIndex: 1, member: allMembers[10] },
+
+    // Day +3
+    { dayOffset: 3, hour: 8, courtIndex: 1, member: allMembers[11] },
+    { dayOffset: 3, hour: 10, courtIndex: 5, member: aaravMember }, // Aarav Badminton
+    { dayOffset: 3, hour: 16, courtIndex: 4, member: allMembers[12] },
+    { dayOffset: 3, hour: 18, courtIndex: 0, member: allMembers[13] },
+    { dayOffset: 3, hour: 19, courtIndex: 7, member: allMembers[14] }, // Cricket net
+
+    // Day +4
+    { dayOffset: 4, hour: 9, courtIndex: 2, member: allMembers[15] },
+    { dayOffset: 4, hour: 11, courtIndex: 6, member: allMembers[16] },
+    { dayOffset: 4, hour: 17, courtIndex: 3, member: aaravMember }, // Aarav Padel
+    { dayOffset: 4, hour: 18, courtIndex: 1, member: allMembers[17] },
+    { dayOffset: 4, hour: 20, courtIndex: 0, member: allMembers[18] },
+
+    // Day +5
+    { dayOffset: 5, hour: 8, courtIndex: 0, member: allMembers[19] },
+    { dayOffset: 5, hour: 10, courtIndex: 4, member: allMembers[0] },
+    { dayOffset: 5, hour: 16, courtIndex: 7, member: allMembers[1] },
+    { dayOffset: 5, hour: 17, courtIndex: 5, member: aaravMember },
+  ];
+
+  for (const item of upcomingSchedule) {
+    const targetDateStr = addClubDays(todayStr, item.dayOffset);
+    const [tY, tM, tD] = targetDateStr.split('-').map(Number);
+    const court = allCourts[item.courtIndex % allCourts.length];
+
+    bookingInserts.push({
+      id: randomUUID(),
+      courtId: court.id,
+      kind: item.kind || 'regular',
+      status: 'confirmed',
+      memberId: item.member?.id ?? null,
+      guestName: item.member ? null : 'Walk-in Guest',
+      startAt: localToUtc(tY, tM, tD, item.hour, 0),
+      endAt: localToUtc(tY, tM, tD, item.hour + 1, 0),
+      channel: 'counter',
+      pricePaise: 150000,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
   // 4. Past completed bookings (yesterday)
   const yesterdayStr = addClubDays(todayStr, -1);
   const [yYear, yMonth, yDay] = yesterdayStr.split('-').map(Number);

@@ -13,6 +13,8 @@ import {
   FileText,
   Calendar,
   User,
+  Download,
+  Share2,
 } from 'lucide-react';
 import { api, ApiClientError } from '../../../api/client';
 import { LoadingState, EmptyState, ErrorState } from '../../../components/shared/States';
@@ -134,6 +136,30 @@ export function Invoices() {
             <option value="draft">Draft</option>
             <option value="void">Void</option>
           </select>
+
+          <button
+            onClick={() => {
+              window.open('/api/finance/export', '_blank');
+              showToast('success', 'Exporting Ledger', 'Financial report CSV download initiated.');
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-2xl bg-canvas border border-border text-primaryText hover:bg-surface transition-colors"
+            title="Download CSV report"
+          >
+            <Download className="w-3.5 h-3.5 text-accent-blue" />
+            <span>Export CSV</span>
+          </button>
+
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(window.location.origin + '/admin/finance');
+              showToast('success', 'Report Shared', 'Financial report link copied to clipboard.');
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-2xl bg-canvas border border-border text-primaryText hover:bg-surface transition-colors"
+            title="Share report snapshot"
+          >
+            <Share2 className="w-3.5 h-3.5 text-accent-orange" />
+            <span>Share</span>
+          </button>
 
           <button
             onClick={() => refetch()}
